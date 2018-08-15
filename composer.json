@@ -1,5 +1,5 @@
 {
-  "name": "refineddigital/form-builder",
+  "name": "refineddigital/cms-form-builder",
   "description": "Form Builder module for RefinedCMS",
   "require": {
     "php": "^7.1.3",
