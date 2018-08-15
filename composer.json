@@ -1,14 +1,8 @@
 {
   "name": "refineddigital/form-builder",
   "description": "Form Builder module for RefinedCMS",
-  "repositories": [
-    {
-      "type": "git",
-      "url": "git@gitlab.com:refined-cms/core.git"
-    }
-  ],
   "require": {
-    "refineddigital/cms": "dev-master",
+    "refineddigital/cms": "~1.0"
     "msurguy/honeypot": "dev-master",
     "google/recaptcha": "^1.2"
   },
