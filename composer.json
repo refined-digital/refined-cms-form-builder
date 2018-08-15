@@ -1,0 +1,46 @@
+{
+  "name": "refineddigital/form-builder",
+  "description": "Form Builder module for RefinedCMS",
+  "type": "project",
+  "repositories": [
+      {
+          "type": "path",
+          "url": "../cms",
+          "options": {
+              "symlink": true
+          }
+      }
+  ],
+  "require": {
+    "refineddigital/cms": "dev-master",
+    "msurguy/honeypot": "dev-master",
+    "google/recaptcha": "^1.2"
+  },
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Matthias Law",
+      "email": "matthias@refineddigital.co.nz"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "RefinedDigital\\FormBuilder\\": "src/"
+    },
+    "files": [
+        "src/Module/Helpers/helpers.php"
+    ]
+  },
+  "config": {
+    "sort-packages": true
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "RefinedDigital\\FormBuilder\\Module\\Providers\\FormBuilderServiceProvider"
+      ],
+      "aliases": {
+      }
+    }
+  }
+}
