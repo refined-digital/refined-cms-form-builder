@@ -1,15 +1,11 @@
 {
   "name": "refineddigital/form-builder",
   "description": "Form Builder module for RefinedCMS",
-  "type": "project",
   "repositories": [
-      {
-          "type": "path",
-          "url": "../cms",
-          "options": {
-              "symlink": true
-          }
-      }
+    {
+      "type": "git",
+      "url": "git@gitlab.com:refined-cms/core.git"
+    }
   ],
   "require": {
     "refineddigital/cms": "dev-master",
@@ -32,7 +28,9 @@
     ]
   },
   "config": {
-    "sort-packages": true
+    "gitlab-token" : {
+      "gitlab.com": "jVzmR3-F3p2y2rg5tyJT"
+    }
   },
   "extra": {
     "laravel": {
