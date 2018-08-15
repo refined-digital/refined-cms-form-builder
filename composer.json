@@ -22,11 +22,6 @@
         "src/Module/Helpers/helpers.php"
     ]
   },
-  "config": {
-    "gitlab-token" : {
-      "gitlab.com": "jVzmR3-F3p2y2rg5tyJT"
-    }
-  },
   "extra": {
     "laravel": {
       "providers": [
