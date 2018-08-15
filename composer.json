@@ -2,7 +2,7 @@
   "name": "refineddigital/form-builder",
   "description": "Form Builder module for RefinedCMS",
   "require": {
-    "refineddigital/cms": "~1.0"
+    "refineddigital/cms": "~1.0",
     "msurguy/honeypot": "dev-master",
     "google/recaptcha": "^1.2"
   },
