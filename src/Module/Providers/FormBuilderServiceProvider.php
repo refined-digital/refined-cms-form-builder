@@ -25,7 +25,7 @@ class FormBuilderServiceProvider extends ServiceProvider
         ]);
 
         if ($this->app->runningInConsole()) {
-            if (!\Schema::hasTable('forms')) {
+            if (\DB::connection()->getDatabaseName() && !\Schema::hasTable('forms')) {
                 $this->commands([
                     Install::class
                 ]);

@@ -3,7 +3,7 @@
   "description": "Form Builder module for RefinedCMS",
   "require": {
     "php": "^7.1.3",
-    "refineddigital/cms": "~1.0",
+    "refineddigital/cms": "~1.0|dev-master",
     "msurguy/honeypot": "dev-master",
     "google/recaptcha": "^1.2"
   },
