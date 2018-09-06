@@ -10,6 +10,7 @@ class FormsRepository
     protected $form;
     protected $template = 'front-end.form';
     protected $formBuilderRepository;
+    protected $attributes = [];
 
     public function __construct(FormBuilderRepository $repo)
     {
@@ -112,6 +113,13 @@ class FormsRepository
         return $this;
     }
 
+    public function setAttributes(array $args)
+    {
+        $this->attributes = $args;
+
+        return $this;
+    }
+
     public function getCountries()
     {
         $countries = config('form-builder.countries');
@@ -127,9 +135,24 @@ class FormsRepository
         $args = new \stdClass();
         $args->route = route('refined.form-builder.submit', $this->form->id);
         $args->attributes = [
-            'class' => 'form--'.$this->form->id,
+            'class' => ['form--'.$this->form->id],
             'novalidate'
         ];
+
+        if (sizeof($this->attributes)) {
+            if (isset($this->attributes['class'])) {
+                $args->attributes['class'] = array_merge($args->attributes['class'], $this->attributes['class']);
+                unset($this->attributes['class']);
+            }
+
+            if (sizeof($this->attributes)) {
+                $args->attributes = array_merge($args->attributes, $this->attributes);
+            }
+        }
+
+
+        // stringify the classes
+        $args->attributes['class'] = implode(' ', $args->attributes['class']);
 
         if ($this->formBuilderRepository->hasFilesField($this->form)) {
             $args->attributes['enctype'] = 'multipart/form-data';
@@ -139,8 +162,6 @@ class FormsRepository
             'args' => $args,
             'form' => $this->form
         ];
-
-        //return app()->make(Render::class)->form($template, $returnData);
 
         return view($template, $returnData);
     }

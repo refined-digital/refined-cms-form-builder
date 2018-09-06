@@ -1,6 +1,6 @@
 <?php
 
-namespace RefinedDigital\Blog\Database\Seeds;
+namespace RefinedDigital\FormBuilder\Database\Seeds;
 
 use Illuminate\Database\Seeder;
 use Carbon\Carbon;

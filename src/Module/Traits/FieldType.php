@@ -144,12 +144,17 @@ trait FieldType
             return false;
         }
 
-        return $this->attributes['show_label'];
+        if ($this->id) {
+            return $this->attributes['show_label'];
+        }
+
+        return true;
+
     }
 
     public function getLabelPositionAttribute()
     {
-        $label = $this->attributes['label_position'];
+        $label = $this->id ? $this->attributes['label_position'] : 1;
 
         $forceToTop = [3,4,5,13,14,15,16,17,18,19];
         if (in_array($this->form_field_type_id, $forceToTop)) {

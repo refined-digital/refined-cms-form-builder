@@ -168,10 +168,10 @@ class FormBuilderController extends CoreController
         $this->formBuilderRepository->compileAndSend($request, $form);
 
         if ($form->redirect_page) {
-            return redirect($form->redirect_page)->with('complete', 1);
+            return redirect($form->redirect_page)->with('complete', 1)->with('form', $form);
         }
 
-        return redirect()->back()->with('complete', 1);
+        return redirect()->back()->with('complete', 1)->with('form', $form);
      }
 
 }

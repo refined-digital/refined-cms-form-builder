@@ -67,7 +67,16 @@
 
 @endif
 
+@php
+    if (!session()->has('loaded_forms')) {
+        session()->put('loaded_forms', []);
+    }
+@endphp
 
+@if (!in_array($form->id, session()->get('loaded_forms')))
+    @php
+        session()->push('loaded_forms', $form->id);
+    @endphp
 @section('scripts')
 <script src="{{ mix('/js/FormBuilder.js', '/vendor/refinedcms') }}"></script>
         <script>
@@ -100,3 +109,4 @@
         <script src="//www.google.com/recaptcha/api.js" async defer></script>
 @endif
 @append
+@endif

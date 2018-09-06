@@ -49,7 +49,7 @@ class Install extends Command
     {
         $this->output->writeln('<info>Migrating the database</info>');
         Artisan::call('migrate', [
-            '--path' => 'vendor/refineddigital/form-builder/src/Database/Migrations',
+            '--path' => 'vendor/refineddigital/cms-form-builder/src/Database/Migrations',
             '--force' => 1,
         ]);
     }

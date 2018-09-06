@@ -20,7 +20,7 @@ class FormBuilderTableSeeder extends Seeder
             'updated_at'    => Carbon::now(),
             'active'        => 1,
             'position'      => 0,
-            'email'         => 1,
+            'form_action'   => 1,
             'recaptcha'     => 1,
             'name'          => 'Contact Us',
             'subject'       => 'Contact Us',
