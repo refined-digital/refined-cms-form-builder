@@ -21,7 +21,8 @@ class FormBuilderServiceProvider extends ServiceProvider
     {
         view()->addNamespace('formBuilder', [
             __DIR__.'/../Resources/views',
-            app_path().'/resources/views/forms'
+            app_path().'/RefinedCMS/Forms',
+            base_path().'/resources/views/forms'
         ]);
 
         if ($this->app->runningInConsole()) {
@@ -52,7 +53,7 @@ class FormBuilderServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__.'/../../../config/form-builder.php', 'form-builder');
 
         $menuConfig = [
-            'order' => 4,
+            'order' => 400,
             'name' => 'Form Builder',
             'icon' => 'fas fa-list',
             'route' => 'form-builder',

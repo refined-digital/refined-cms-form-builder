@@ -70,19 +70,18 @@ class FormsRepository
         if (is_integer($requestedForm) || is_numeric($requestedForm)) {
             $form = $this->formBuilderRepository->getFormById($requestedForm);
             if (!isset($form->id)) {
-                return 'Form does not exist.';
+                throw new \Error('Form does not exist.');
             }
         } else {
             $form = $this->formBuilderRepository->getFormByName($requestedForm);
             if (!isset($form->id)) {
-                return 'Form "'.$requestedForm.'" does not exist.';
+                throw new \Error('Form "'.$requestedForm.'" does not exist.');
             }
         }
 
         // todo: add the model stuff
 
         // add in the settings
-
         $form->settings = settings()->get('form-builder');
 
         $this->form = $form;
@@ -166,6 +165,39 @@ class FormsRepository
         return view($template, $returnData);
     }
 
+
+
+    public function getFieldClass($field)
+    {
+        $class = $this->getFieldClassName($field->custom_field_class);
+        return new $class;
+    }
+
+    public function getFieldClassByName($customClassName)
+    {
+        $class = $this->getFieldClassName($customClassName);
+        return new $class;
+    }
+
+    public function getFieldClassName($customClassName)
+    {
+        $name = str_replace('FormField_', '', $customClassName);
+        $class = 'App\\RefinedCMS\\Forms\\'.$name.'\\'.$customClassName;
+
+        return $class;
+    }
+
+    public function formatFieldsByName($request, $form)
+    {
+        $data = [];
+        if (isset($form->fields)) {
+            foreach ($form->fields as $field) {
+                $data[$field->name] = $request->get($field->field_name);
+            }
+        }
+
+        return (object) $data;
+    }
 
 
 }

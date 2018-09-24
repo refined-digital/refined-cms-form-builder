@@ -13,8 +13,8 @@ class FormField extends CoreModel implements Sortable
 
     protected $fillable = [
         'form_id', 'form_field_type_id', 'active', 'show_label', 'position',
-        'name', 'required', 'placeholder', 'data', 'store_in', 'note',
-        'label_position', 'autocomplete'
+        'name', 'required', 'placeholder', 'data', 'custom_field_class', 'store_in',
+        'note', 'label_position', 'autocomplete'
     ];
 
     /**
@@ -48,6 +48,9 @@ class FormField extends CoreModel implements Sortable
                         [
                             [ 'count' => 3],
                             [ 'label' => 'Field Note', 'name' => 'note'],
+                            [ 'label' => 'Custom Field Class', 'name' => 'custom_field_class', 'row' => [ 'attrs' => ['v-if' => 'form.field.type === \'20\'']]],
+                        ],
+                        [
                             [ 'label' => 'Data', 'name' => 'data', 'type' => 'textarea', 'row' => [ 'attrs' => ['v-if' => 'form.field.showDataFor.indexOf(form.field.type) > -1']]],
                         ],
                     ]

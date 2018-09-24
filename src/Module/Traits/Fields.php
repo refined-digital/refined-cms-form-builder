@@ -19,7 +19,7 @@ trait Fields
 
     public function fields() : HasMany
     {
-        return $this->hasMany('RefinedDigital\FormBuilder\Module\Models\FormField', 'form_id');
+        return $this->hasMany('RefinedDigital\FormBuilder\Module\Models\FormField', 'form_id')->orderBy('position', 'asc');
     }
 
 }

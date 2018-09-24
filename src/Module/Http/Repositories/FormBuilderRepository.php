@@ -213,7 +213,7 @@ class FormBuilderRepository extends CoreRepository
 
     public function getFormByName($name)
     {
-        return $this->model::whereName($name)->get();
+        return $this->model::whereName($name)->first();
     }
 
     public function hasFilesField($form)
@@ -240,6 +240,17 @@ class FormBuilderRepository extends CoreRepository
         $settings->form_id = $form->id;
         $settings->data = $repo->setDataForDB($request);
         $repo->send($settings);
+    }
+
+    public function emailInCallback($request, $form)
+    {
+        // only do the callback if it exits
+        if ($form->callback) {
+            $class = new $form->callback;
+            $class->run($request, $form);
+        } else {
+            $this->compileAndSend($request, $form);
+        }
     }
 
 

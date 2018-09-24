@@ -26,6 +26,7 @@ class CreateFormFieldsDatabase extends Migration
             $table->boolean('required')->default(0);
             $table->string('placeholder')->nullable();
             $table->text('data')->nullable();
+            $table->string('custom_field_class')->nullable();
             $table->string('store_in')->nullable();
             $table->text('note')->nullable();
             $table->boolean('label_position')->default(1);

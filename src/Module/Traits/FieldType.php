@@ -129,7 +129,15 @@ trait FieldType
         if ($this->form_field_type_id == 11) {
             $name = 'password';
         }
-        return 'formBuilder::front-end.fields.'.str_slug($name);
+
+        $view = 'formBuilder::front-end.fields.'.str_slug($name);;
+
+        if ($this->form_field_type_id == 20) {
+            $model = forms()->getFieldClassByName($this->custom_field_class);
+            $view = $model->getView();
+        }
+
+        return $view;
     }
 
     public function getFieldNameAttribute()

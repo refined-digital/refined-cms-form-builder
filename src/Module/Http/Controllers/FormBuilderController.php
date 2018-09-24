@@ -165,7 +165,21 @@ class FormBuilderController extends CoreController
 
      public function submit(FormSubmitRequest $request, Form $form)
      {
-        $this->formBuilderRepository->compileAndSend($request, $form);
+        switch($form->form_action) {
+            case 2: // email in callback
+                $this->formBuilderRepository->emailInCallback($request, $form);
+                break;
+            case 3: // save to model
+
+                break;
+            default:
+                    $this->formBuilderRepository->compileAndSend($request, $form);
+                break;
+        }
+
+        if (session()->has('form_data')) {
+            session()->forget('form_data');
+        }
 
         if ($form->redirect_page) {
             return redirect($form->redirect_page)->with('complete', 1)->with('form', $form);

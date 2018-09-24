@@ -11,7 +11,7 @@
     </div>
 @endif
 
-@if (session()->has('complete'))
+@if (session()->has('complete') && session()->has('form') && session()->get('form')->id == $form->id)
     {!! $form->confirmation !!}
 @else
 
@@ -80,8 +80,8 @@
 @section('scripts')
 <script src="{{ mix('/js/FormBuilder.js', '/vendor/refinedcms') }}"></script>
         <script>
-            let form = document.querySelector('.form--{{ $form->id }}');
-            let validate = new window.FormValidate();
+            let form{{$form->id}} = document.querySelector('.form--{{ $form->id }}');
+            let validate{{$form->id}} = new window.FormValidate();
     @if($form->recaptcha == 2)
         let formSubmitted{{ $form->id }} = false;
             function submitForm{{ $form->id }}() {
@@ -89,11 +89,11 @@
                 form.submit();
             }
     @endif
-        form.addEventListener('submit', function submit(e) {
-                let errors = validate.validate(this);
-                if (errors.length) {
+        form{{$form->id}}.addEventListener('submit', function submit(e) {
+                let errors{{$form->id}} = validate{{$form->id}}.validate(this);
+                if (errors{{$form->id}}.length) {
                     e.preventDefault();
-                    validate.alert();
+                    validate{{$form->id}}.alert();
                 }
             @if($form->recaptcha == 2)
     else {
