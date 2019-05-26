@@ -149,6 +149,10 @@ class FormsRepository
             }
         }
 
+        // set the default button text
+        if (!isset($this->form->submitText) || (isset($this->form->submitText) && !$this->form->submitText)) {
+            $this->form->submitText = 'Submit';
+        }
 
         // stringify the classes
         $args->attributes['class'] = implode(' ', $args->attributes['class']);
