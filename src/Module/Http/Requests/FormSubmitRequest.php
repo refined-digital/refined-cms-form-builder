@@ -73,6 +73,8 @@ class FormSubmitRequest extends FormRequest
                             break;
                     }
 
+                    // todo: add required check for custom fields
+
                     // add the required states to the args
                     if ($field->form_field_type_id == 18) {
                         $args[$field->field_name] = 'required';
