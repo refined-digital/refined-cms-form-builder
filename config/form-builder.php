@@ -254,5 +254,6 @@ return [
     ],
     'accepted_mime_types' => 'bmp,csv,doc,docx,gif,jpeg,jpg,pdf,png,ppt,pptx,tif,tiff,txt,xls,xlsx',
     'date_format' => 'd/m/Y',
-    'datetime_format' => 'd/m/Y g:ia'
+    'datetime_format' => 'd/m/Y g:ia',
+    'skip_validation' => [19, 12]
 ];

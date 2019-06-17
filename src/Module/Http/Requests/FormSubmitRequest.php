@@ -28,11 +28,16 @@ class FormSubmitRequest extends FormRequest
     {
         $args = null;
         $form = $this->route('form');
+        $skip = config('form-builder.skip_validation');
 
         if (isset($form->fields) && $form->fields && $form->fields->count()) {
             $args = [];
             foreach ($form->fields as $field) {
                 if ($field->required) {
+                    // skip fields that don't require validate, but may be marked as such
+                    if (in_array($field->form_field_type_id, $skip)) {
+                        continue;
+                    }
                     $required = ['required'];
                     $this->customMessages[$field->field_name.'.required'] = 'The '.$field->name.' field is required.';
 
@@ -98,6 +103,7 @@ class FormSubmitRequest extends FormRequest
                 $this->customMessages['g-recaptcha-response.required']  = 'You must confirm you are not a Robot';
             }
         }
+
 
         // return the results to set for validation
         return $args;
