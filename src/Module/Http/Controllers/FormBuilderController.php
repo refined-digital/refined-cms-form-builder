@@ -181,6 +181,10 @@ class FormBuilderController extends CoreController
             session()->forget('form_data');
         }
 
+        if ($request->ajax()) {
+            return response()->json($form);
+        }
+
         if ($form->redirect_page) {
             return redirect($form->redirect_page)->with('complete', 1)->with('form', $form);
         }
