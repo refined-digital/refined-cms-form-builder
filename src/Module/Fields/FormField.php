@@ -9,7 +9,7 @@ class FormField {
 
     public function __construct()
     {
-        $this->templatePath = 'formBuilder::'.$this->name.'.resources.views.';
+        $this->templatePath = 'formBuilder::'.str_replace(' ', '', $this->name).'.resources.views.';
     }
 
     public function getView()
