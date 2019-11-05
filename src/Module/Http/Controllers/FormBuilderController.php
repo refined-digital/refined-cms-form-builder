@@ -167,14 +167,14 @@ class FormBuilderController extends CoreController
      {
         switch($form->form_action) {
             case 2: // email in callback
-                $this->formBuilderRepository->emailInCallback($request, $form);
+                return $this->formBuilderRepository->emailInCallback($request, $form);
                 break;
             case 3: // save to model
                 //todo: complete this
                 break;
             default:
-                    $this->formBuilderRepository->compileAndSend($request, $form);
-                break;
+                $this->formBuilderRepository->compileAndSend($request, $form);
+            break;
         }
 
         if (session()->has('form_data')) {
