@@ -247,7 +247,7 @@ class FormBuilderRepository extends CoreRepository
         // only do the callback if it exits
         if ($form->callback) {
             $class = new $form->callback;
-            $class->run($request, $form);
+            return $class->run($request, $form);
         } else {
             $this->compileAndSend($request, $form);
         }

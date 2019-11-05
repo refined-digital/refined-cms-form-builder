@@ -167,7 +167,10 @@ class FormBuilderController extends CoreController
      {
         switch($form->form_action) {
             case 2: // email in callback
-                return $this->formBuilderRepository->emailInCallback($request, $form);
+                $hasReturn = $this->formBuilderRepository->emailInCallback($request, $form);
+                if ($hasReturn) {
+                    return $hasReturn;
+                }
                 break;
             case 3: // save to model
                 //todo: complete this
