@@ -20,8 +20,9 @@ class FormBuilderServiceProvider extends ServiceProvider
     public function boot()
     {
         view()->addNamespace('formBuilder', [
-            base_path().'/resources/views/forms',
-            app_path().'/RefinedCMS/Forms',
+            base_path('resources/views/forms'),
+            app_path('RefinedCMS/Forms'),
+            base_path('vendor/refineddigital/cms-product-manager/src/Module/Resources/views/forms'),
             __DIR__.'/../Resources/views',
         ]);
 
