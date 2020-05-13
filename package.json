@@ -21,8 +21,7 @@
     "url": "https://github.com/refineddigital/cms-product-manager/issues"
   },
   "homepage": "https://github.com/refineddigital/cms-product-manager#readme",
-  "dependencies": {
-  },
+  "dependencies": {},
   "devDependencies": {
     "laravel-mix": "^5.0.4",
     "sass": "^1.26.5",
