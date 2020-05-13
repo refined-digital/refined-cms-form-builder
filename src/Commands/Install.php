@@ -41,6 +41,7 @@ class Install extends Command
     {
         $this->migrate();
         $this->seed();
+        $this->createSymLink();
         $this->info('Form Builder has been successfully installed');
     }
 
@@ -61,5 +62,25 @@ class Install extends Command
             '--class' => '\\RefinedDigital\\FormBuilder\\Database\\Seeds\\DatabaseSeeder',
             '--force' => 1
         ]);
+    }
+
+    protected function createSymLink()
+    {
+        $link = getcwd().'/public/vendor/';
+        $target = '../../vendor/refineddigital/cms-form-builder/assets/';
+
+        // create the directories
+        if (!is_dir($link)) {
+            mkdir($link);
+        }
+        $link .= 'refined/form-builder';
+
+        if (! windows_os()) {
+            return symlink($target, $link);
+        }
+
+        $mode = is_dir($target) ? 'J' : 'H';
+
+        exec("mklink /{$mode} \"{$link}\" \"{$target}\"");
     }
 }

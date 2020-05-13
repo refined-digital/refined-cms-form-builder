@@ -23,7 +23,7 @@
     session()->push('loaded_forms', $form->id);
   @endphp
 
-  @section('scripts')
-    @include('formBuilder::front-end.includes.scripts')
-  @append
+  @include('formBuilder::front-end.includes.scripts')
+  @include('formBuilder::front-end.includes.styles')
 @endif
+

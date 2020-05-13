@@ -1,0 +1,36 @@
+@import 'variables';
+@import 'mixins/respond';
+@import 'functions';
+
+.form {
+  &__payment-gateway {
+    .form__label {
+      display: inline-block;
+    }
+
+    &-icon {
+      margin-top: 10px;
+    }
+  }
+}
+
+.payment-gateway {
+  padding: 4px;
+  border-radius: 4px;
+
+  &__details {
+    display: none;
+    margin-top: 5px;
+  }
+
+  &--active {
+    border: 1px solid color(border);
+    .payment-gateway__details {
+      display: block;
+    }
+  }
+
+  & + .payment-gateway {
+    margin-top: 10px;
+  }
+}

@@ -1,3 +1,4 @@
+@section('scripts')
 <script src="{{ mix('/js/FormBuilder.js', '/vendor/refined/core') }}"></script>
 <script>
   let form{{$form->id}} = document.querySelector('.form--{{ $form->id }}');
@@ -15,6 +16,9 @@
       e.preventDefault();
       validate{{$form->id}}.alert();
     }
+
+    @yield('form-submit-injection')
+
   @if($form->recaptcha == 2)
     else {
       if (!formSubmitted{{ $form->id }}) {
@@ -25,6 +29,8 @@
   @endif
 });
 </script>
-  @if($form->recaptcha)
-    <script src="//www.google.com/recaptcha/api.js" async defer></script>
-  @endif
+
+@if($form->recaptcha)
+  <script src="//www.google.com/recaptcha/api.js" async defer></script>
+@endif
+@append

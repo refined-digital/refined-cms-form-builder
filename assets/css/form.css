@@ -1,0 +1,24 @@
+.form__payment-gateway .form__label {
+  display: inline-block;
+}
+.form__payment-gateway-icon {
+  margin-top: 10px;
+}
+
+.payment-gateway {
+  padding: 4px;
+  border-radius: 4px;
+}
+.payment-gateway__details {
+  display: none;
+  margin-top: 5px;
+}
+.payment-gateway--active {
+  border: 1px solid #acacad;
+}
+.payment-gateway--active .payment-gateway__details {
+  display: block;
+}
+.payment-gateway + .payment-gateway {
+  margin-top: 10px;
+}
