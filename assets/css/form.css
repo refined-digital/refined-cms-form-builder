@@ -4,6 +4,13 @@
 .form__payment-gateway-icon {
   margin-top: 10px;
 }
+.form__row--cc-expiry {
+  display: flex;
+  justify-content: space-between;
+}
+.form__row--cc-expiry select {
+  flex: 0 0 48%;
+}
 
 .payment-gateway {
   padding: 4px;
@@ -26,4 +33,7 @@
   margin-top: 10px;
   font-size: 14px;
   color: #c00;
+}
+.payment-gateway__icons svg {
+  height: 20px;
 }

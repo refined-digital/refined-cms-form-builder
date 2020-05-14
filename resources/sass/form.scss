@@ -12,6 +12,15 @@
       margin-top: 10px;
     }
   }
+
+  &__row--cc-expiry {
+    display: flex;
+    justify-content: space-between;
+
+    select {
+      flex: 0 0 48%;
+    }
+  }
 }
 
 .payment-gateway {
@@ -38,5 +47,11 @@
     margin-top: 10px;
     font-size: 14px;
     color: #c00;
+  }
+
+  &__icons {
+    svg {
+      height: 20px;
+    }
   }
 }
