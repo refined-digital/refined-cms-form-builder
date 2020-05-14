@@ -33,4 +33,10 @@
   & + .payment-gateway {
     margin-top: 10px;
   }
+
+  &__errors {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #c00;
+  }
 }

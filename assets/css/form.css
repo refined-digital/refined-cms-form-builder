@@ -22,3 +22,8 @@
 .payment-gateway + .payment-gateway {
   margin-top: 10px;
 }
+.payment-gateway__errors {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #c00;
+}
