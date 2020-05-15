@@ -66,24 +66,29 @@ class Install extends Command
 
     protected function createSymLink()
     {
-        $link = getcwd().'/public/vendor/';
-        $target = '../../vendor/refineddigital/cms-form-builder/assets/';
+        $this->output->writeln('<info>Creating Symlink</info>');
+        try {
+            $link = getcwd().'/public/vendor/';
+            $target = '../../../vendor/refineddigital/cms-form-builder/assets/';
 
-        // create the directories
-        if (!is_dir($link)) {
-            mkdir($link);
-        }
-        $link .= 'refined/';
-        if (!is_dir($link)) {
-            mkdir($link);
-        }
-        $link .= 'form-builder';
-        if (! windows_os()) {
-            return symlink($target, $link);
-        }
+            // create the directories
+            if (!is_dir($link)) {
+                mkdir($link);
+            }
+            $link .= 'refined/';
+            if (!is_dir($link)) {
+                mkdir($link);
+            }
+            $link .= 'form-builder';
+            if (! windows_os()) {
+                return symlink($target, $link);
+            }
 
-        $mode = is_dir($target) ? 'J' : 'H';
+            $mode = is_dir($target) ? 'J' : 'H';
 
-        exec("mklink /{$mode} \"{$link}\" \"{$target}\"");
+            exec("mklink /{$mode} \"{$link}\" \"{$target}\"");
+        } catch(\Exception $e) {
+            $this->output->writeln('<error>Failed to install symlink</error>');
+        }
     }
 }
