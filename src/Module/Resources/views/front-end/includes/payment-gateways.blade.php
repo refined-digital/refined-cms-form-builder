@@ -1,5 +1,8 @@
 @php
-  $gateways = paymentGateways()->getAll();
+  $gateways = [];
+  if (config('products.orders.active')) {
+    $gateways = paymentGateways()->getAll();
+  }
 @endphp
 
 @if (sizeof($gateways))

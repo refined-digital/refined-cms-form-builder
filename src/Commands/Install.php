@@ -73,8 +73,11 @@ class Install extends Command
         if (!is_dir($link)) {
             mkdir($link);
         }
-        $link .= 'refined/form-builder';
-
+        $link .= 'refined/';
+        if (!is_dir($link)) {
+            mkdir($link);
+        }
+        $link .= 'form-builder';
         if (! windows_os()) {
             return symlink($target, $link);
         }
