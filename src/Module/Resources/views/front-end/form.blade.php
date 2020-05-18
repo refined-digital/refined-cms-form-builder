@@ -6,6 +6,9 @@
   <div class="form">
     @include('formBuilder::front-end.includes.opener')
     @include('formBuilder::front-end.includes.fields')
+    @if ($hasPayments)
+      @include('formBuilder::front-end.includes.payment-gateways')
+    @endif
     @include('formBuilder::front-end.includes.captcha')
     @include('formBuilder::front-end.includes.submit')
     @include('formBuilder::front-end.includes.closer')

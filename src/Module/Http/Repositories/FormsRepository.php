@@ -11,6 +11,8 @@ class FormsRepository
     protected $template = 'front-end.form';
     protected $formBuilderRepository;
     protected $attributes = [];
+    protected $hasPayments = false;
+    protected $templateNamespace = 'formBuilder';
 
     public function __construct(FormBuilderRepository $repo)
     {
@@ -112,6 +114,20 @@ class FormsRepository
         return $this;
     }
 
+    public function setHasPayments($value)
+    {
+        $this->hasPayments = $value;
+
+        return $this;
+    }
+
+    public function setTemplateNamespace($value = 'formBuilder')
+    {
+        $this->templateNamespace = $value;
+
+        return $this;
+    }
+
     public function setAttributes(array $args)
     {
         $this->attributes = $args;
@@ -129,7 +145,7 @@ class FormsRepository
     public function render()
     {
 
-        $template = 'formBuilder::'.$this->template;
+        $template = $this->templateNamespace.'::'.$this->template;
 
         $args = new \stdClass();
         $args->route = route('refined.form-builder.submit', $this->form->id);
@@ -163,7 +179,8 @@ class FormsRepository
 
         $returnData = [
             'args' => $args,
-            'form' => $this->form
+            'form' => $this->form,
+            'hasPayments' => $this->hasPayments
         ];
 
         return view($template, $returnData);
