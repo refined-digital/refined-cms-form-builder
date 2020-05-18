@@ -100,7 +100,7 @@ class FormsRepository
 
     public function setTemplate($template)
     {
-        $this->formTemplate = $template;
+        $this->template = $template;
 
         return $this;
     }
