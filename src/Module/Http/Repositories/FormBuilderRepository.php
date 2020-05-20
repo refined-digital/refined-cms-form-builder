@@ -231,6 +231,7 @@ class FormBuilderRepository extends CoreRepository
         return false;
     }
 
+    // todo: do we need to send the reciept as well?
     public function compileAndSend($request, $form)
     {
         $repo = new EmailRepository();

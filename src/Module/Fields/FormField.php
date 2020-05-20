@@ -28,4 +28,10 @@ class FormField {
             $request = $request->all();
         }
     }
+
+    // todo: this should be a contract item
+    public function getValidationRules()
+    {
+
+    }
 }

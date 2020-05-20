@@ -35,6 +35,7 @@ class FieldTypeTableSeeder extends Seeder
             'Multiple Files',
             'Static',
             'Custom',
+            'DOB',
 
         ];
 

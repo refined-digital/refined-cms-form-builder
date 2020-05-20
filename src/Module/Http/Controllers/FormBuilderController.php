@@ -165,6 +165,8 @@ class FormBuilderController extends CoreController
 
      public function submit(FormSubmitRequest $request, Form $form)
      {
+         // todo: add events to hook into after email has been sent
+         // todo: maybe make the actual sending of the email as an event also
         switch($form->form_action) {
             case 2: // email in callback
                 $hasReturn = $this->formBuilderRepository->emailInCallback($request, $form);

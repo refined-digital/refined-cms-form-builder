@@ -78,7 +78,21 @@ class FormSubmitRequest extends FormRequest
                             break;
                     }
 
-                    // todo: add required check for custom fields
+                    if ($field->form_field_type_id == 20 && $field->custom_field_class) {
+                        $model = forms()->getFieldClassByName($field->custom_field_class);
+                        $validationRules = $model->getValidationRules();
+                        if (isset($validationRules->required) && sizeof($validationRules->required)) {
+                            foreach ($validationRules->required as $rule) {
+                                $required[] = $rule;
+                            }
+                        }
+
+                        if (isset($validationRules->messages) && sizeof($validationRules->messages)) {
+                            foreach ($validationRules->messages as $rule => $message) {
+                                $this->customMessages[$field->field_name.'.'.$rule] = $message;
+                            }
+                        }
+                    }
 
                     // add the required states to the args
                     if ($field->form_field_type_id == 18) {
