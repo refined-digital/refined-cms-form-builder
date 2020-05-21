@@ -227,8 +227,7 @@ class FormsRepository
             }
         }
 
-        // todo: don't make this an object
-        return (object) $data;
+        return $data;
     }
 
 
