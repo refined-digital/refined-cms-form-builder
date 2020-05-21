@@ -211,12 +211,23 @@ class FormsRepository
     public function formatFieldsByName($request, $form)
     {
         $data = [];
+        $counts = [];
         if (isset($form->fields)) {
             foreach ($form->fields as $field) {
-                $data[$field->name] = $request->get($field->field_name);
+                $key = $field->name;
+                if (isset($counts[$field->name])) {
+                    $key .= '_'.$counts[$field->name];
+                }
+                $data[$key] = $request->get($field->field_name);
+
+                if (!isset($counts[$field->name])) {
+                    $counts[$field->name] = 0;
+                }
+                $counts[$field->name] ++;
             }
         }
 
+        // todo: don't make this an object
         return (object) $data;
     }
 
