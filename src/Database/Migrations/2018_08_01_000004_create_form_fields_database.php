@@ -33,6 +33,8 @@ class CreateFormFieldsDatabase extends Migration
             $table->boolean('label_position')->default(1);
             $table->boolean('autocomplete')->default(0);
             $table->text('custom_class')->nullable();
+            $table->string('merge_field')->nullable();
+            $table->string('hidden_field_value')->nullable();
 
             $table->foreign('form_id')->references('id')->on('forms')->onDelete('cascade');
             $table->foreign('form_field_type_id')->references('id')->on('form_field_types')->onDelete('cascade');
