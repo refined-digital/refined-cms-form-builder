@@ -15,7 +15,7 @@ class FormField extends CoreModel implements Sortable
         'form_id', 'form_field_type_id', 'active', 'show_label', 'position',
         'name', 'required', 'placeholder', 'data', 'custom_field_class', 'store_in',
         'note', 'label_position', 'autocomplete', 'custom_class',
-        'note_position',
+        'note_position', 'merge_field', 'hidden_field_value'
     ];
 
     /**
@@ -47,12 +47,18 @@ class FormField extends CoreModel implements Sortable
                             [ 'label' => 'Placeholder', 'name' => 'placeholder'],
                         ],
                         [
-                            [ 'label' => 'Field Note', 'name' => 'note'],
-                            [ 'label' => 'Note Position', 'name' => 'note_position', 'required' => true, 'type' => 'select', 'options' => [0 => 'Bottom', 1 => 'Top' ] ],
+                          [ 'label' => 'Field Note', 'name' => 'note'],
+                          [ 'label' => 'Note Position', 'name' => 'note_position', 'required' => true, 'type' => 'select', 'options' => [0 => 'Bottom', 1 => 'Top' ] ],
                         ],
                         [
-                            [ 'label' => 'Custom CSS Class', 'name' => 'custom_class', ],
-                            [ 'label' => 'Custom Field Class', 'name' => 'custom_field_class', 'row' => [ 'attrs' => ['v-if' => 'form.field.type === \'20\'']]],
+                          [ 'count' => 2],
+                          [ 'label' => 'Hidden Field Value', 'name' => 'hidden_field_value', 'row' => [ 'attrs' => ['v-if' => 'form.field.type === \'12\'']]],
+                          [ 'label' => 'Custom CSS Class', 'name' => 'custom_class', ],
+                          [ 'label' => 'Custom Field Class', 'name' => 'custom_field_class', 'row' => [ 'attrs' => ['v-if' => 'form.field.type === \'20\'']]],
+                        ],
+                        [
+                            [ 'count' => 2],
+                            [ 'label' => 'Merge Field', 'name' => 'merge_field', ],
                         ],
                         [
                             [ 'label' => 'Data', 'name' => 'data', 'type' => 'textarea', 'row' => [ 'attrs' => ['v-if' => 'form.field.showDataFor.indexOf(form.field.type) > -1']]],

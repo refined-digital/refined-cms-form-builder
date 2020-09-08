@@ -116,14 +116,19 @@ class FormBuilderRepository extends CoreRepository
             return false;
         }
 
-
         // grab the form submissions
         $repo = new EmailRepository();
         $submissions = $repo->getFormSubmissions($form->id);
 
         if ($submissions && $submissions->count()) {
             // set the headers
-            $headers = ['id' => 'id', 'created_at' => 'created_at', 'to' => 'to', 'from' => 'from', 'ip' => 'ip'];
+            $headers = [
+              'id' => 'id',
+              'created_at' => 'created_at',
+              'to' => 'to',
+              'from' => 'from',
+              'ip' => 'ip'
+            ];
             $hide = [10,11,19];
 
             // add in the field titles
@@ -169,7 +174,6 @@ class FormBuilderRepository extends CoreRepository
             }
 
             if (sizeof($headers) && sizeof($body)) {
-
                 return ['headers' => $headers, 'body' => $body];
             }
 
