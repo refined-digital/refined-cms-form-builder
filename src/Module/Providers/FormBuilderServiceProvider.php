@@ -4,11 +4,11 @@ namespace RefinedDigital\FormBuilder\Module\Providers;
 
 use Illuminate\Foundation\AliasLoader;
 use Illuminate\Support\ServiceProvider;
-use RefinedDigital\CMS\Modules\Core\Models\PublicRouteAggregate;
 use RefinedDigital\FormBuilder\Commands\Install;
-use RefinedDigital\CMS\Modules\Core\Models\PackageAggregate;
-use RefinedDigital\CMS\Modules\Core\Models\ModuleAggregate;
-use RefinedDigital\CMS\Modules\Core\Models\RouteAggregate;
+use RefinedDigital\CMS\Modules\Core\Aggregates\PublicRouteAggregate;
+use RefinedDigital\CMS\Modules\Core\Aggregates\PackageAggregate;
+use RefinedDigital\CMS\Modules\Core\Aggregates\ModuleAggregate;
+use RefinedDigital\CMS\Modules\Core\Aggregates\RouteAggregate;
 
 class FormBuilderServiceProvider extends ServiceProvider
 {
