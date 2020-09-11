@@ -1,6 +1,6 @@
 {
   "name": "@refineddigital/form-builder",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "description": "Form Builder for Refined CMS",
   "main": "index.js",
   "scripts": {
