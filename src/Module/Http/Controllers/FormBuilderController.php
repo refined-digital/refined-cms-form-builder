@@ -162,7 +162,6 @@ class FormBuilderController extends CoreController
      * @param  RefinedDigital\FormBuilder\Module\Models\Form
      * @return \Illuminate\Http\RedirectResponse
      */
-
      public function submit(FormSubmitRequest $request, Form $form)
      {
          // todo: add events to hook into after email has been sent

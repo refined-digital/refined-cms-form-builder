@@ -22,6 +22,7 @@ class CreateFormsTable extends Migration
             $table->integer('position');
             $table->integer('form_action')->default(1);
             $table->boolean('recaptcha')->default(1);
+            $table->boolean('send_as_plain_text')->default(0);
             $table->string('name')->nullable();
             $table->string('subject')->nullable();
             $table->string('email_to')->nullable();

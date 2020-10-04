@@ -235,15 +235,20 @@ class FormBuilderRepository extends CoreRepository
         return false;
     }
 
-    // todo: do we need to send the reciept as well?
+    // todo: do we need to send the receipt as well?
     public function compileAndSend($request, $form)
     {
         $repo = new EmailRepository();
-        $html = $repo->makeHtml($request, $form);
+        if (isset($form->send_as_plain_text) && $form->send_as_plain_text) {
+          $body = $repo->makeText($request, $form);
+        } else {
+          $body = $repo->makeHtml($request, $form);
+        }
         $settings = $repo->settingsFromForm($form, $request);
-        $settings->body = $html;
+        $settings->body = $body;
         $settings->form_id = $form->id;
         $settings->data = $repo->setDataForDB($request);
+        $settings->send_as_plain_text = isset($form->send_as_plain_text) && $form->send_as_plain_text;
         $repo->send($settings);
     }
 
