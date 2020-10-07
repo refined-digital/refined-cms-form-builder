@@ -9,8 +9,7 @@
     @if ($hasPayments)
       @include('formBuilder::front-end.includes.payment-gateways')
     @endif
-    @include('formBuilder::front-end.includes.captcha')
-    @include('formBuilder::front-end.includes.submit')
+    @include('formBuilder::front-end.includes.buttons')
     @include('formBuilder::front-end.includes.closer')
   </div><!-- / form -->
 @endif

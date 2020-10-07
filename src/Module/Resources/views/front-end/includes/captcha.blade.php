@@ -1,8 +1,8 @@
 @if($form->recaptcha)
-  @if(env('RECAPTCHA_KEY') == '')
-    <div class="required">ReCaptcha needs to be configured</div>
-  @endif
   <div class="form__row form__row--captcha">
+    @if(env('RECAPTCHA_KEY') == '')
+      <div class="required">ReCaptcha needs to be configured</div>
+    @endif
     <div
       class="g-recaptcha"
       data-sitekey="{{ env('RECAPTCHA_KEY') }}"
