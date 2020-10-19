@@ -249,7 +249,7 @@ class FormBuilderRepository extends CoreRepository
         $settings->form_id = $form->id;
         $settings->data = $repo->setDataForDB($request);
         $settings->send_as_plain_text = isset($form->send_as_plain_text) && $form->send_as_plain_text
-          ? (boolean)$form->send_as_plain_text 
+          ? (boolean)$form->send_as_plain_text
           : false;
         $repo->send($settings);
     }
