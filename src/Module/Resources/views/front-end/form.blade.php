@@ -1,4 +1,5 @@
 @include('formBuilder::front-end.includes.errors')
+@include('formBuilder::front-end.includes.message')
 
 @if (session()->has('complete') && session()->has('form') && session()->get('form')->id == $form->id)
   {!! $form->confirmation !!}

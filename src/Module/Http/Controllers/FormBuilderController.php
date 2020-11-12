@@ -174,7 +174,10 @@ class FormBuilderController extends CoreController
                 }
                 break;
             case 3: // save to model
-                //todo: complete this
+                $hasReturn = $this->formBuilderRepository->saveToModel($request, $form);
+                if ($hasReturn) {
+                    return $hasReturn;
+                }
                 break;
             default:
                 $this->formBuilderRepository->compileAndSend($request, $form);

@@ -265,6 +265,51 @@ class FormBuilderRepository extends CoreRepository
         }
     }
 
+    public function saveToModel($request, $form)
+    {
+        $model = $form->model;
+        $type = class_basename($model);
+        $errors = collect();
+
+        $id = $request->get('model_id');
+
+        if (!$model) {
+          $errors->push('You must supply a model');
+          return redirect()->back()->with(compact('errors'));
+        }
+
+        if ($type === 'User' && auth()->check() && auth()->user()->id != $id) {
+          $errors->push('Invalid Request');
+          return redirect()->back()->with(compact('errors'));
+        }
+
+        if (!$id) {
+          $errors->push('Model Id not found');
+          return redirect()->back()->with(compact('errors'));
+        }
+
+        try {
+          $item = $model::find($id);
+          if (!isset($item->id)) {
+            $errors->push('Item not found');
+            return redirect()->back()->with(compact('errors'));
+          }
+
+          $formRepository = new FormsRepository($this);
+          $fields = $formRepository->formatWithMergeFields($request, $form);
+
+          $repo = new CoreRepository();
+          $repo->setModel($form->model);
+          $repo->update($id, $fields);
+
+          return redirect()->back()->with('message', 'Successfully Updated');
+
+        } catch (\Exception $e) {
+          $errors->push($e->getMessage());
+          return redirect()->back()->with(compact('errors'));
+        }
+    }
+
 
     public function destroy($id)
     {
