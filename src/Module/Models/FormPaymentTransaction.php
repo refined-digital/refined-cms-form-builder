@@ -16,6 +16,9 @@ class FormPaymentTransaction extends CoreModel
     ];
 
     protected $casts = [
+        'id' => 'integer',
+        'form_id' => 'integer',
+        'type_id' => 'integer',
         'request' => 'object',
         'response' => 'object',
     ];

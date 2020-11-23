@@ -13,4 +13,10 @@ class FormFieldType extends CoreModel implements Sortable
     protected $fillable = [
         'active', 'position', 'name',
     ];
+
+    protected $casts = [
+      'id' => 'integer',
+      'active' => 'integer',
+      'position' => 'integer',
+    ];
 }

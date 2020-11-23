@@ -18,6 +18,19 @@ class FormField extends CoreModel implements Sortable
         'note_position', 'merge_field', 'hidden_field_value'
     ];
 
+    protected $casts = [
+      'id' => 'integer',
+      'active' => 'integer',
+      'position' => 'integer',
+      'form_id' => 'integer',
+      'form_field_type_id' => 'integer',
+      'show_label' => 'integer',
+      'required' => 'integer',
+      'note_position' => 'integer',
+      'label_position' => 'integer',
+      'autocomplete' => 'integer',
+    ];
+
     /**
      * The fields to be displayed for creating / editing
      *

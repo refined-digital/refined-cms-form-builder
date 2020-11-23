@@ -13,4 +13,9 @@ class FormFieldOption extends CoreModel implements Sortable
     protected $fillable = [
         'form_field_id', 'position', 'value', 'label'
     ];
+
+    protected $casts = [
+      'id' => 'integer',
+      'position' => 'integer',
+    ];
 }

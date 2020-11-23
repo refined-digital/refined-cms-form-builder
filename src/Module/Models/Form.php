@@ -18,6 +18,15 @@ class Form extends CoreModel implements Sortable
         'redirect_page', 'receipt','receipt_message','receipt_subject',
     ];
 
+    protected $casts = [
+      'id' => 'integer',
+      'active' => 'integer',
+      'position' => 'integer',
+      'recaptcha' => 'integer',
+      'send_as_plain_text' => 'integer',
+      'receipt' => 'integer',
+    ];
+
     /**
      * The fields to be displayed for creating / editing
      *
