@@ -1,5 +1,6 @@
 const mix = require('laravel-mix');
 
+mix.setPublicPath('assets');
 mix
   .options({
     processCssUrls: false
