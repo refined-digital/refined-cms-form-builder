@@ -7,9 +7,14 @@
   if (isset($defaultFields, $defaultFields[$field->custom_class])) {
       $value = $defaultFields[$field->custom_class];
   }
+
+  $options = $field->select_options;
+  if (isset($selectFieldsOverride[$field->field_name])) {
+      $options = $selectFieldsOverride[$field->field_name];
+  }
 @endphp
 {!!
     html()
-        ->select($field->field_name, $field->select_options, $value)
+        ->select($field->field_name, $options, $value)
         ->attributes($field->attributes)
 !!}

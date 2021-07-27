@@ -13,6 +13,7 @@ class FormsRepository
     protected $attributes = [];
     protected $hasPayments = false;
     protected $templateNamespace = 'formBuilder';
+    protected $selectFieldsOverride = [];
 
     public function __construct(FormBuilderRepository $repo)
     {
@@ -86,6 +87,7 @@ class FormsRepository
             'form' => $this->form,
             'hasPayments' => $this->hasPayments,
             'fields' => $fields,
+            'selectFieldsOverride' => $this->selectFieldsOverride
         ];
 
         return view($template, $returnData);
@@ -152,6 +154,12 @@ class FormsRepository
       }
       $this->additionalFields->fields = $this->formatAdditionalFields($fields);
       return $this;
+    }
+
+    public function setSelectFieldsOverride($key, $values)
+    {
+        $this->selectFieldsOverride[$key] = $values;
+        return $this;
     }
 
     private function setFields()
