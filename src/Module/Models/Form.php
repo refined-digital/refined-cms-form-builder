@@ -46,12 +46,12 @@ class Form extends CoreModel implements Sortable
                     [ 'label' => 'Subject', 'name' => 'subject', 'required' => true],
                   ],
                   [
-                    [ 'label' => 'Email To', 'name' => 'email_to', 'required' => true, 'row' => ['attrs' => ['v-if' => "form.action != '3'"]] ],
+                    [ 'label' => 'Email To', 'name' => 'email_to', 'required' => true, 'type' => 'emails', 'row' => ['attrs' => ['v-if' => "form.action != '3'"]] ],
                     [ 'label' => 'Reply To', 'name' => 'reply_to', 'required' => false, 'type' => 'replyTo', 'note' => 'Use <code>Enter Email Address</code> to enter an email address.<br/>Or, select an email field from your form. <br/><small>(Note: Come back once you have added all your form fields)</small>', 'row' => ['attrs' => ['v-if' => "form.action != '3'"]] ],
                   ],
                   [
-                    [ 'label' => 'CC', 'name' => 'cc', 'required' => false, 'row' => ['attrs' => ['v-if' => "form.action != '3'"]] ],
-                    [ 'label' => 'BCC', 'name' => 'bcc', 'required' => false, 'row' => ['attrs' => ['v-if' => "form.action != '3'"]] ],
+                    [ 'label' => 'CC', 'name' => 'cc', 'required' => false, 'type' => 'emails', 'row' => ['attrs' => ['v-if' => "form.action != '3'"]] ],
+                    [ 'label' => 'BCC', 'name' => 'bcc', 'required' => false, 'type' => 'emails', 'row' => ['attrs' => ['v-if' => "form.action != '3'"]] ],
                   ],
                 ]
               ]

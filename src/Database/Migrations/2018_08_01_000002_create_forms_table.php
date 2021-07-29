@@ -25,10 +25,10 @@ class CreateFormsTable extends Migration
             $table->boolean('send_as_plain_text')->default(0);
             $table->string('name')->nullable();
             $table->string('subject')->nullable();
-            $table->string('email_to')->nullable();
+            $table->text('email_to')->nullable();
             $table->string('reply_to')->nullable();
-            $table->string('cc')->nullable();
-            $table->string('bcc')->nullable();
+            $table->text('cc')->nullable();
+            $table->text('bcc')->nullable();
             $table->string('callback')->nullable();
             $table->string('model')->nullable();
             $table->longText('message')->nullable();

@@ -27,11 +27,11 @@ class FormBuilderRequest extends FormRequest
         $args = [
             'name'                  => ['required' => 'required', 'unique' => 'unique:forms,name'],
             'subject'               => ['required' => 'required'],
-            'email_to'              => ['required' => 'required', 'email' => 'email'],
+            'email_to'              => ['required' => 'required', 'email' => 'emails'],
             'message'               => ['required' => 'required'],
             'confirmation'          => ['required' => 'required'],
-            'cc'                    => ['nullable', 'email' => 'email'],
-            'bcc'                   => ['nullable', 'email' => 'email'],
+            'cc'                    => ['nullable', 'email' => 'emails'],
+            'bcc'                   => ['nullable', 'email' => 'emails'],
         ];
 
         // remove the fields that are not required to store into a model
@@ -78,6 +78,9 @@ class FormBuilderRequest extends FormRequest
             'confirmation.required'     => 'The on screen message field is required.',
             'reply_to.email'            => 'The reply to field must be a valid email address.',
             'model.required'            => 'The model to save to field is required.',
+            'email_to.emails'           => 'A valid email address is required',
+            'cc.emails'                 => 'A valid email address is required',
+            'bcc.emails'                => 'A valid email address is required',
         ];
     }
 }
