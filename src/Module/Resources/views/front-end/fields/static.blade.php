@@ -1,1 +1,1 @@
-{{ $field->data }}
+{!! nl2br($field->data) !!}
