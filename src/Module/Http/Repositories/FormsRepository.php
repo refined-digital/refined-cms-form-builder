@@ -310,7 +310,7 @@ class FormsRepository
             'id' => 'form__field-extra--'.str_slug($field->field_name)
           ];
 
-          if ($field->value) {
+          if ($field->value || $field->value == '') {
             $field->data = $field->value;
             unset($field->value);
           }
