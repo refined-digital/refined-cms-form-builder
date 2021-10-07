@@ -23,7 +23,10 @@ class FormBuilderRepository extends CoreRepository
         switch ($type) {
             case 'field types':
                 return $this->getFormFieldTypesForSelect();
-                break;
+            case 'forms':
+                return $this->getFormsForSelect();
+            case 'content forms':
+                return $this->getFormsForContentSelect();
         }
     }
 
@@ -38,6 +41,39 @@ class FormBuilderRepository extends CoreRepository
         if ($types && $types->count()) {
             foreach ($types as $t) {
                 $data[$t->id] = $t->name;
+            }
+        }
+
+        return $data;
+    }
+
+    public function getFormsForSelect()
+    {
+        $types = Form::orderBy('position')->get();
+
+        $data = [0 => 'Please Select'];
+
+        if ($types && $types->count()) {
+            foreach ($types as $t) {
+                $data[$t->id] = $t->name;
+            }
+        }
+
+        return $data;
+    }
+
+    public function getFormsForContentSelect()
+    {
+        $types = Form::orderBy('position')->get();
+
+        $data = [['label' => 'Please Select', 'value' => 0]];
+
+        if ($types && $types->count()) {
+            foreach ($types as $t) {
+                $data[] = [
+                    'label' => $t->name,
+                    'value' => $t->id
+                ];
             }
         }
 
