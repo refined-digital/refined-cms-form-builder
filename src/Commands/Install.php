@@ -3,8 +3,10 @@
 namespace RefinedDigital\FormBuilder\Commands;
 
 use Illuminate\Console\Command;
+use Symfony\Component\Console\Question\Question;
 use Validator;
 use Artisan;
+use RuntimeException;
 
 class Install extends Command
 {
@@ -21,6 +23,9 @@ class Install extends Command
      * @var string
      */
     protected $description = 'Installs the form builder module';
+
+    protected $siteKey = '';
+    protected $secretKey = '';
 
     /**
      * Create a new command instance.
@@ -39,12 +44,39 @@ class Install extends Command
      */
     public function handle()
     {
+        $this->askQuestions();
         $this->migrate();
         $this->seed();
         $this->createSymLink();
+        $this->updateEnvFile();
+        $this->publishConfig();
         $this->info('Form Builder has been successfully installed');
     }
 
+    protected function askQuestions()
+    {
+        $helper = $this->getHelper('question');
+
+        $question = new Question('reCaptcha Site Key?: ', false);
+        $question->setValidator(function ($answer) {
+            if(strlen($answer) < 1) {
+                throw new RuntimeException('reCaptcha Site Key is required');
+            }
+            return $answer;
+        });
+        $question->setMaxAttempts(3);
+        $this->siteKey = $helper->ask($this->input, $this->output, $question);
+
+        $question = new Question('reCaptcha Secret Key?: ', false);
+        $question->setValidator(function ($answer) {
+            if(strlen($answer) < 1) {
+                throw new RuntimeException('reCaptcha Secret Key is required');
+            }
+            return $answer;
+        });
+        $question->setMaxAttempts(3);
+        $this->secretKey = $helper->ask($this->input, $this->output, $question);
+    }
 
     protected function migrate()
     {
@@ -79,7 +111,13 @@ class Install extends Command
             if (!is_dir($link)) {
                 mkdir($link);
             }
+
             $link .= 'form-builder';
+
+            if (is_link($link)) {
+                return;
+            }
+
             if (! windows_os()) {
                 return symlink($target, $link);
             }
@@ -90,5 +128,35 @@ class Install extends Command
         } catch(\Exception $e) {
             $this->output->writeln('<error>Failed to install symlink</error>');
         }
+    }
+
+    protected function updateEnvFile()
+    {
+        $env = app()->environmentFilePath();
+        $file = file_get_contents($env);
+
+        // add in the cache settings
+        $file .= "\n\nRECAPTCHA_SITE_KEY=".$this->siteKey."
+RECAPTCHA_SECRET_KEY=".$this->secretKey."
+RECAPTCHA_SKIP_IP=".config('app.url');
+        file_put_contents($env, $file);
+    }
+
+    public function publishConfig()
+    {
+        Artisan::call('vendor:publish', [
+            '--provider' => 'Biscolab\ReCaptcha\ReCaptchaServiceProvider'
+        ]);
+
+        $path = config_path('recaptcha.php');
+
+        $content = file_get_contents($path);
+
+        $search = ["'v2'", ];
+        $replace = ["'v3'", ];
+
+        $content = str_replace($search, $replace, $content);
+
+        file_put_contents($path, $content);
     }
 }

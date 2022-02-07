@@ -346,6 +346,12 @@ class FormBuilderRepository extends CoreRepository
         }
     }
 
+    public function destroyField($id)
+    {
+        FormFieldOption::whereFormFieldId($id)->delete();
+        return parent::destroy($id);
+
+    }
 
     public function destroy($id)
     {

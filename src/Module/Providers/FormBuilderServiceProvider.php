@@ -76,5 +76,6 @@ class FormBuilderServiceProvider extends ServiceProvider
         $loader = AliasLoader::getInstance();
         $this->app->register(\Msurguy\Honeypot\HoneypotServiceProvider::class);
         $loader->alias('Honeypot', \Msurguy\Honeypot\HoneypotFacade::class);
+        $loader->alias('ReCaptcha', \Biscolab\ReCaptcha\Facades\ReCaptcha::class);
     }
 }

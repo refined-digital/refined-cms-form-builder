@@ -27,6 +27,7 @@ class FormBuilderTableSeeder extends Seeder
             'email_to'      => 'matthias@refineddigital.co.nz',
             'message'       => '<p>You have a new contact form submission</p><p>[[fields]]</p>',
             'confirmation'  => '<p>Thanks for contacting us.</p><p>We will be in touch soon</p>',
+            'redirect_page' => '/thank-you',
         ]);
 
         // now insert the fields

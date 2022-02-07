@@ -31,6 +31,10 @@ class FormField extends CoreModel implements Sortable
       'autocomplete' => 'integer',
     ];
 
+    protected $appends = [
+        'view',
+    ];
+
     /**
      * The fields to be displayed for creating / editing
      *

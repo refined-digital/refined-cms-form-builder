@@ -7,8 +7,10 @@
     <div class="form__note">{{ $field->note }}</div>
   @endif
 
-  @if (view()->exists($field->view))
+  @if (str_contains('formBuilder::', $field->value) && view()->exists($field->view))
     @include($field->view)
+  @else
+    {!! $field->view !!}
   @endif
 
   @if ($field->show_label && $field->label_position == 0)

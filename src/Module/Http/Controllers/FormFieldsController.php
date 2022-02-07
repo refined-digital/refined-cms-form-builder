@@ -115,8 +115,10 @@ class FormFieldsController extends CoreController
     public function destroy($id)
     {
         $id = request()->route('field');
+        $repo = new FormBuilderRepository();
+        $repo->setModel($this->model);
 
-        if ($this->formBuilderRepository->destroy($id)) {
+        if ($repo->destroyField($id)) {
             return back()->with('status', 'Item deleted successfully');
         }
 

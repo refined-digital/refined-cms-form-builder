@@ -16,6 +16,5 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(FieldTypeTableSeeder::class);
         $this->call(FormBuilderTableSeeder::class);
-        $this->call(TemplatesTableSeeder::class);
     }
 }

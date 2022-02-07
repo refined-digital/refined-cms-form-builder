@@ -5,6 +5,8 @@ namespace RefinedDigital\FormBuilder\Module\Traits;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use RefinedDigital\FormBuilder\Module\Scopes\FieldTypeScope;
+use Str;
+use Blade;
 
 trait FieldType
 {
@@ -130,14 +132,20 @@ trait FieldType
             $name = 'password';
         }
 
-        $view = 'formBuilder::front-end.fields.'.str_slug($name);;
+        $class = forms()->getFieldClass($this);
+        if ($class) {
+            $view = $class->renderView();
+        } else {
+            $view = 'formBuilder::front-end.fields.'.Str::slug($name);;
 
-        if ($this->form_field_type_id == 20) {
-            $model = forms()->getFieldClassByName($this->custom_field_class);
-            $view = $model->getView();
+            if ($this->form_field_type_id == 20) {
+                $model = forms()->getFieldClassByName($this->custom_field_class);
+                $view = $model->getView();
+            }
         }
 
         return $view;
+
     }
 
     public function getFieldNameAttribute()

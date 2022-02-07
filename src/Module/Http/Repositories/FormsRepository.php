@@ -3,6 +3,7 @@
 namespace RefinedDigital\FormBuilder\Module\Http\Repositories;
 
 use RefinedDigital\FormBuilder\Module\Models\FormField;
+use Str;
 
 class FormsRepository
 {
@@ -187,18 +188,7 @@ class FormsRepository
 
     public function getGroupCount($group)
     {
-      $size = sizeof($group);
-
-      if (sizeof($group)) {
-        foreach ($group as $d) {
-          if (isset($d->count)) {
-            $size = $d->count;
-            continue;
-          }
-        }
-      }
-
-      return $size;
+        return core()->getGroupCount($group);
     }
 
     public function getForSelect($type = false)
@@ -231,22 +221,37 @@ class FormsRepository
 
     public function getFieldClass($field)
     {
-        $class = $this->getFieldClassName($field->custom_field_class);
-        return new $class;
+        if ($field->custom_field_class) {
+            $class = $this->getCustomFieldClassName($field->custom_field_class);
+        } else {
+            $class = $this->getFieldClassName($field->type->name);
+        }
+
+        if (class_exists($class)) {
+            return new $class($field);
+        }
+
+        return false;
     }
 
     public function getFieldClassByName($customClassName)
     {
-        $class = $this->getFieldClassName($customClassName);
+        $class = $this->getCustomFieldClassName($customClassName);
         return new $class;
     }
 
-    public function getFieldClassName($customClassName)
+    public function getCustomFieldClassName($customClassName)
     {
         $name = str_replace('FormField_', '', $customClassName);
-        $class = 'App\\RefinedCMS\\Forms\\'.$name.'\\'.$customClassName;
 
-        return $class;
+        return 'App\\RefinedCMS\\Forms\\'.$name.'\\'.$customClassName;
+    }
+
+    public function getFieldClassName($className)
+    {
+        $name = 'FormField_'.ucfirst(Str::camel($className));
+
+        return 'RefinedDigital\\FormBuilder\\Module\\Fields\\'.$name;
     }
 
     public function getCountries()

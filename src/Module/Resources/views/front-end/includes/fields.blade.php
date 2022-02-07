@@ -1,7 +1,11 @@
 @if ($fields->hidden->count())
   <div class="form__fields--hidden">
     @foreach ($fields->hidden as $field)
-      @include($field->view)
+      @if (str_contains('formBuilder::', $field->value) && view()->exists($field->view))
+        @include($field->view)
+      @else
+        {!! $field->view !!}
+      @endif
     @endforeach
   </div>
 @endif
