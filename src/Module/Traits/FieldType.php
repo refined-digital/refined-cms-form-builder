@@ -98,7 +98,7 @@ trait FieldType
         }
 
         if (!$this->autocomplete) {
-            $args['autocomplete'] = 'nope'; // chrome ignores off, so set it to a random string, in this case nope
+            $args['autocomplete'] = uniqid(); // chrome ignores off, so set it to a random string
         }
 
         switch ($this->form_field_type_id) {

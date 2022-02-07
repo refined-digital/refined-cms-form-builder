@@ -53,8 +53,7 @@ class FormField {
 
         return view()
             ->make($view)
-            ->with([
-            ])
+            ->with($with)
             ->render();
     }
 
