@@ -16,7 +16,7 @@ class FormField {
 
         $value = $field->value;
 
-        if ($field->field_type_id === 12) {
+        if ($field->form_field_type_id == 12) {
             $value = $field->hidden_field_value ?? $field->data;
         }
 
@@ -47,7 +47,7 @@ class FormField {
             'value' => $this->value
         ];
 
-        if ($this->field->field_type_id === 3 && $this->selectFieldsOverride) {
+        if ($this->field->form_field_type_id == 3 && $this->selectFieldsOverride) {
             $with['selectFieldsOverride'] = $this->selectFieldsOverride;
         }
 

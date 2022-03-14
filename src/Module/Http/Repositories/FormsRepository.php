@@ -285,7 +285,7 @@ class FormsRepository
                       $key = kebab_case($key);
                       break;
                     case 'slug':
-                      $key = str_slug($key);
+                      $key = Str::slug($key);
                       break;
                   }
                 }
@@ -305,14 +305,34 @@ class FormsRepository
     private function formatAdditionalFields($fields)
     {
       $formattedFields = collect([]);
+
+      $hiddenClassName = $this->getFieldClassName('hidden');
+
       if (is_array($fields) && sizeof($fields)) {
         foreach ($fields as $field) {
           $field = (object) $field;
+
           // todo: check if this needs the namespace replaced via $this->templateNamespace
-          $field->view = 'formBuilder::front-end.fields.'.$field->view;
-          $field->name = str_slug($field->field_name, '_');
+          $view = 'formBuilder::front-end.fields.'.$field->view;
+
+          if ($field->view === 'hidden') {
+            $field->form_field_type_id = 12;
+            if ($field->value) {
+              $field->hidden_field_value = $field->value;
+            }
+            $field->attributes = [];
+            if (class_exists($hiddenClassName)) {
+              $class = new $hiddenClassName($field);
+            }
+            if ($class) {
+              $view = $class->renderView();
+            }
+          }
+
+          $field->view = $view;
+          $field->name = Str::slug($field->field_name, '_');
           $field->attributes = [
-            'id' => 'form__field-extra--'.str_slug($field->field_name)
+            'id' => 'form__field-extra--'.Str::slug($field->field_name)
           ];
 
           if ($field->value || $field->value == '') {

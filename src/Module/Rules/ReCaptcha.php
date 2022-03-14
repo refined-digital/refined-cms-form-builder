@@ -25,7 +25,7 @@ class ReCaptcha implements Rule
      */
     public function passes($attribute, $value)
     {
-        $captcha = new ReCaptcha(env('RECAPTCHA_SECRET'));
+        $captcha = new ReCaptcha(env('RECAPTCHA_SECRET_KEY'));
         $response = $captcha->verify($value, $_SERVER['REMOTE_ADDR']);
         return $response->isSuccess() ? true : false;
     }

@@ -1,7 +1,7 @@
 @if ($fields->hidden->count())
   <div class="form__fields--hidden">
     @foreach ($fields->hidden as $field)
-      @if (str_contains('formBuilder::', $field->value) && view()->exists($field->view))
+      @if (str_contains('formBuilder::', $field->view) && view()->exists($field->view))
         @include($field->view)
       @else
         {!! $field->view !!}
