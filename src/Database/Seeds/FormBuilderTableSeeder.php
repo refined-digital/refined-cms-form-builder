@@ -32,10 +32,11 @@ class FormBuilderTableSeeder extends Seeder
 
         // now insert the fields
         $fields = [
-            ['form_id' => 1, 'form_field_type_id' => 1, 'active' => 1, 'show_label' => 1, 'position' => 0, 'name' => 'Name',    'required' => 1],
-            ['form_id' => 1, 'form_field_type_id' => 8, 'active' => 1, 'show_label' => 1, 'position' => 1, 'name' => 'Email',   'required' => 1],
-            ['form_id' => 1, 'form_field_type_id' => 9, 'active' => 1, 'show_label' => 1, 'position' => 2, 'name' => 'Phone',   'required' => 1],
-            ['form_id' => 1, 'form_field_type_id' => 2, 'active' => 1, 'show_label' => 1, 'position' => 3, 'name' => 'Message', 'required' => 1],
+            ['form_id' => 1, 'form_field_type_id' => 1, 'active' => 1, 'show_label' => 1, 'position' => 0, 'name' => 'First Name',    'required' => 1],
+            ['form_id' => 1, 'form_field_type_id' => 1, 'active' => 1, 'show_label' => 1, 'position' => 0, 'name' => 'Last Name',     'required' => 1],
+            ['form_id' => 1, 'form_field_type_id' => 8, 'active' => 1, 'show_label' => 1, 'position' => 1, 'name' => 'Email',         'required' => 1],
+            ['form_id' => 1, 'form_field_type_id' => 9, 'active' => 1, 'show_label' => 1, 'position' => 2, 'name' => 'Phone',         'required' => 1],
+            ['form_id' => 1, 'form_field_type_id' => 2, 'active' => 1, 'show_label' => 1, 'position' => 3, 'name' => 'Message',       'required' => 1],
         ];
 
         foreach($fields as $field) {
