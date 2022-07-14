@@ -116,7 +116,7 @@ class FormBuilderController extends CoreController
         $data = $this->formBuilderRepository->export($form);
 
         if (is_array($data)) {
-            $filename = str_slug('form '.$form->name.'-export-'.date('Y-m-d')).'.csv';
+            $filename = \Str::slug('form '.$form->name.'-export-'.date('Y-m-d')).'.csv';
 
             return response()->streamDownload(function() use($data) {
                 // create a file pointer connected to the output stream
