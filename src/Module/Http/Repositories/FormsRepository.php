@@ -276,13 +276,13 @@ class FormsRepository
                 if ($keyType) {
                   switch ($keyType) {
                     case 'snake':
-                      $key = snake_case($key);
+                      $key = Str::snake($key);
                       break;
                     case 'camel':
-                      $key = camel_case($key);
+                      $key = Str::camel($key);
                       break;
                     case 'kebab':
-                      $key = kebab_case($key);
+                      $key = Str::kebab($key);
                       break;
                     case 'slug':
                       $key = Str::slug($key);
