@@ -173,7 +173,7 @@ trait FieldType
         $label = $this->id ? $this->attributes['label_position'] : 1;
 
         $forceToTop = [3,4,5,13,14,15,16,17,18,19];
-        if (in_array($this->form_field_type_id, $forceToTop)) {
+        if (in_array($this->form_field_type_id, $forceToTop) && $this->attributes['label_position'] != 2) {
             $label = 1;
         }
 

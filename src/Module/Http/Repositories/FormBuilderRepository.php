@@ -82,7 +82,17 @@ class FormBuilderRepository extends CoreRepository
 
     public function storeField($request, $extraFields = [])
     {
-        $field = $this->store($request, $extraFields);
+        if(is_array($request)) {
+            $data = $request;
+        } else {
+            $data = $request->all();
+        }
+
+        if ($data['label_position'] == 2) {
+            $data['placeholder'] = ' ';
+        }
+
+        $field = $this->store($data, $extraFields);
 
         if (isset($field->id)) {
             // check if the options need to be stored
@@ -94,7 +104,17 @@ class FormBuilderRepository extends CoreRepository
 
     public function updateField($id, $request)
     {
-        $field = $this->update($id, $request);
+        if(is_array($request)) {
+            $data = $request;
+        } else {
+            $data = $request->all();
+        }
+
+        if ($data['label_position'] == 2) {
+            $data['placeholder'] = ' ';
+        }
+
+        $field = $this->update($id, $data);
 
         if (isset($field->id)) {
             // check if the options need to be stored

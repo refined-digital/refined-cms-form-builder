@@ -1,4 +1,22 @@
-<div class="form__row form__row--{{ $field->id }}{{ $field->required ? ' form__row--required' : '' }}{{ $field->custom_class ? ' '.$field->custom_class : '' }}{{ isset($errors) && $errors->has($field->field_name) ? ' form__row--has-error' : '' }}"{!! $field->required ? ' data-required-label="'.$field->name.'"' : ' '!!}>
+@php
+    $fieldClasses = [
+        'form__row',
+        'form__row--'.$field->id,
+    ];
+    if ($field->required) {
+        $fieldClasses[] = 'form__row--required';
+    }
+    if ($field->custom_class) {
+        $fieldClasses[] = $field->custom_class;
+    }
+    if (isset($errors) && $errors->has($field->field_name)) {
+        $fieldClasses[] = ' form__row--has-error';
+    }
+    if ($field->show_label && $field->label_position == 2) {
+        $fieldClasses[] = 'form__row--floating-label';
+    }
+@endphp
+<div class="{{ implode(' ', $fieldClasses) }}"{!! $field->required ? ' data-required-label="'.$field->name.'"' : ' '!!}>
   @if ($field->show_label && $field->label_position == 1)
     @include('formBuilder::front-end.elements.label')
   @endif
@@ -13,7 +31,7 @@
     {!! $field->view !!}
   @endif
 
-  @if ($field->show_label && $field->label_position == 0)
+  @if ($field->show_label && ($field->label_position == 0 || $field->label_position == 2))
     @include('formBuilder::front-end.elements.label')
   @endif
 
