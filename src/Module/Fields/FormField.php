@@ -31,7 +31,7 @@ class FormField {
         $this->value = $value;
     }
 
-    public function formatData($request)
+    public function formatData($field, $request)
     {
         if (!is_array($request)) {
             $request = $request->all();
