@@ -21,7 +21,7 @@ class FormsRepository
         $this->formBuilderRepository = $repo;
     }
 
-    public function form($requestedForm)
+    public function load($requestedForm)
     {
         // find the form
         if (is_integer($requestedForm) || is_numeric($requestedForm)) {
