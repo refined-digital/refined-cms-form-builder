@@ -2,10 +2,10 @@
   "name": "refineddigital/cms-form-builder",
   "description": "Form Builder module for RefinedCMS",
   "require": {
-    "php": "^8.1",
+    "php": "^8.2",
     "refineddigital/cms": "^1.15|dev-master",
-    "msurguy/honeypot": "^1.1",
-    "biscolab/laravel-recaptcha": "^5.2"
+    "msurguy/honeypot": "^1.2",
+    "biscolab/laravel-recaptcha": "^6.0"
   },
   "license": "MIT",
   "authors": [
