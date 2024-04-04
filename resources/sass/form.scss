@@ -21,7 +21,55 @@
       flex: 0 0 48%;
     }
   }
+
+  &-button {
+    &__loading {
+      display: none;
+    }
+  }
 }
+
+.button--loading {
+  .form-button {
+    &__loading {
+      display: block;
+    }
+    &__text {
+      display: none;
+    }
+  }
+
+  .loader-spinner {
+    animation: animateSpinner 2s linear infinite;
+  }
+
+  .loader-spinner__path {
+    stroke-linecap: butt;
+    animation: animateSpinnerPath 1.5s ease-in-out infinite;
+  }
+
+  @keyframes animateSpinner {
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes animateSpinnerPath {
+    0% {
+      stroke-dasharray: 1, 150;
+      stroke-dashoffset: 0;
+    }
+    50% {
+      stroke-dasharray: 90, 150;
+      stroke-dashoffset: -40;
+    }
+    100% {
+      stroke-dasharray: 90, 150;
+      stroke-dashoffset: -124;
+    }
+  }
+}
+
 
 .payment-gateway {
   padding: 4px;
@@ -55,3 +103,4 @@
     }
   }
 }
+
