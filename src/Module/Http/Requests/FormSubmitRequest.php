@@ -3,6 +3,7 @@
 namespace RefinedDigital\FormBuilder\Module\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use RefinedDigital\FormBuilder\Module\Rules\ReCaptcha;
 
 class FormSubmitRequest extends FormRequest
 {
@@ -113,8 +114,8 @@ class FormSubmitRequest extends FormRequest
             // check for captcha
             // todo: do the real captcha validation
             if($form->recaptcha) {
-                $args['g-recaptcha-response']  = 'required';
-                $this->customMessages['g-recaptcha-response.required']  = 'You must confirm you are not a Robot';
+                $args['_captcha']  = ['required', new ReCaptcha()];
+                $this->customMessages['_captcha.required']  = 'Robot Detected';
             }
         }
 

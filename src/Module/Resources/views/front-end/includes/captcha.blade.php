@@ -2,11 +2,8 @@
   <div class="form__row form__row--captcha">
     @if(env('RECAPTCHA_SITE_KEY') == '')
       <div class="required">ReCaptcha needs to be configured</div>
+    @else
+      <input type="hidden" name="_captcha" />
     @endif
-    <div
-      class="g-recaptcha"
-      data-sitekey="{{ env('RECAPTCHA_SITE_KEY') }}"
-      {!! $form->recaptcha == 2 ? 'data-size="invisible" data-callback="submitForm'.$form->id.'"' : '' !!}
-    ></div>
   </div>
 @endif

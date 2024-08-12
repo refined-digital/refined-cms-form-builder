@@ -2,41 +2,28 @@
 
 namespace RefinedDigital\FormBuilder\Module\Rules;
 
-use Illuminate\Contracts\Validation\Rule;
+use Closure;
+use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Support\Facades\Http;
 
-class ReCaptcha implements Rule
+class ReCaptcha implements ValidationRule
 {
     /**
-     * Create a new rule instance.
+     * Run the validation rule.
      *
-     * @return void
+     * @param  \Closure(string): \Illuminate\Translation\PotentiallyTranslatedString  $fail
      */
-    public function __construct()
+    public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        //
-    }
+        $data = [
+            'secret' => env('RECAPTCHA_SECRET_KEY'),
+            'response' => $value
+        ];
 
-    /**
-     * Determine if the validation rule passes.
-     *
-     * @param  string  $attribute
-     * @param  mixed  $value
-     * @return bool
-     */
-    public function passes($attribute, $value)
-    {
-        $captcha = new ReCaptcha(env('RECAPTCHA_SECRET_KEY'));
-        $response = $captcha->verify($value, $_SERVER['REMOTE_ADDR']);
-        return $response->isSuccess() ? true : false;
-    }
+        $response = Http::get('https://www.google.com/recaptcha/api/siteverify', $data);
 
-    /**
-     * Get the validation error message.
-     *
-     * @return string
-     */
-    public function message()
-    {
-        return 'You must confirm you are not a Robot.';
+        if (!($response->json()["success"] ?? false)) {
+            $fail('The google recaptcha is required.');
+        }
     }
 }

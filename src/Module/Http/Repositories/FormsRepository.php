@@ -367,5 +367,13 @@ class FormsRepository
       return $fields;
     }
 
+    public function getGoogleRecaptchaJS()
+    {
+        return '<script src="//www.google.com/recaptcha/api.js" async defer></script>';
+    }
 
+    public function googleRecaptchaEnabled()
+    {
+        return env('RECAPTCHA_SITE_KEY') && env('RECAPTCHA_SECRET_KEY');
+    }
 }

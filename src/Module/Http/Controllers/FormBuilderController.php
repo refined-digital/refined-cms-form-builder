@@ -143,8 +143,10 @@ class FormBuilderController extends CoreController
      * @param  \RefinedDigital\FormBuilder\Module\Models\Form  $id
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function duplicate(Form $form)
+    public function duplicate($originalId)
     {
+        $form = Form::findOrFail($originalId);
+
         $type = $this->formBuilderRepository->duplicate($form);
 
         if ($type) {

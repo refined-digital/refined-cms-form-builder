@@ -115,7 +115,7 @@ class Form extends CoreModel implements Sortable
                                     [
                                         'label'    => 'ReCaptcha', 'name' => 'recaptcha',
                                         'required' => true, 'type' => 'select',
-                                        'options'  => [0 => 'No', 1 => 'v3', 2 => 'Invisible']
+                                        'options'  => [0 => 'No', 1 => 'Yes' ]
                                     ],
                                     [
                                         'label'    => 'Send Receipt Email', 'name' => 'receipt',
