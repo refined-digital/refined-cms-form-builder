@@ -49,7 +49,6 @@ class Install extends Command
         $this->seed();
         $this->createSymLink();
         $this->updateEnvFile();
-        $this->publishConfig();
         $this->info('Form Builder has been successfully installed');
     }
 
@@ -140,23 +139,5 @@ class Install extends Command
 RECAPTCHA_SECRET_KEY=".$this->secretKey."
 RECAPTCHA_SKIP_IP=".config('app.url');
         file_put_contents($env, $file);
-    }
-
-    public function publishConfig()
-    {
-        Artisan::call('vendor:publish', [
-            '--provider' => 'Biscolab\ReCaptcha\ReCaptchaServiceProvider'
-        ]);
-
-        $path = config_path('recaptcha.php');
-
-        $content = file_get_contents($path);
-
-        $search = ["'v2'", ];
-        $replace = ["'v3'", ];
-
-        $content = str_replace($search, $replace, $content);
-
-        file_put_contents($path, $content);
     }
 }
