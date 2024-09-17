@@ -15,7 +15,7 @@ class FormField extends CoreModel implements Sortable
         'form_id', 'form_field_type_id', 'active', 'show_label', 'position',
         'name', 'required', 'placeholder', 'data', 'custom_field_class', 'store_in',
         'note', 'label_position', 'autocomplete', 'custom_class',
-        'note_position', 'merge_field', 'hidden_field_value'
+        'note_position', 'merge_field', 'hidden_field_value', 'settings',
     ];
 
     protected $casts = [
@@ -29,6 +29,7 @@ class FormField extends CoreModel implements Sortable
       'note_position' => 'integer',
       'label_position' => 'integer',
       'autocomplete' => 'integer',
+      'settings' => 'object',
     ];
 
     protected $appends = [
@@ -100,6 +101,12 @@ class FormField extends CoreModel implements Sortable
                                 [
                                     [ 'label' => 'Merge Field', 'name' => 'merge_field', ],
                                 ],
+                                [
+                                    [ 'label' => 'File Types', 'name' => 'settings[file_types]', 'type' => 'select', 'options' => ['image' => 'Image', 'document' => 'Document', 'image_document' => 'Image Or Document'], 'row' => [ 'attrs' => ['v-if' => 'form.field.type === \'17\'']]]
+                                ],
+                                [
+                                    [ 'label' => 'Max File Size', 'name' => 'settings[max_file_size]', 'type' => 'number', 'note' => 'in MB', 'row' => [ 'attrs' => ['v-if' => 'form.field.type === \'17\'']]],
+                                ]
                             ]
                         ]
                     ]

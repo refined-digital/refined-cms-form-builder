@@ -116,6 +116,11 @@ trait FieldType
             case 15:
                 $args['class'] .= ' form__control--date-picker';
                 break;
+            case 17:
+                $fileTypes = $this->getFileFieldTypes($this->settings);
+                if ($fileTypes) {
+                    $args['accept'] = $fileTypes;
+                }
             case 18:
                 $args['class'] .= ' form__control--multiple-files';
                 $args['multiple'] = 'multiple';
@@ -123,6 +128,25 @@ trait FieldType
         }
 
         return $args;
+    }
+
+    private function getFileFieldTypes($settings)
+    {
+        if (isset($settings->file_types)) {
+            if ($settings->file_types == 'image') {
+                return 'image/*';
+            }
+
+            if ($settings->file_types == 'document') {
+                return 'application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+            }
+
+            if ($settings->file_types == 'image_document') {
+                return 'image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+            }
+        }
+
+        return null;
     }
 
     public function getViewAttribute()

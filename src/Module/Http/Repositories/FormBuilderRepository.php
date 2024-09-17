@@ -282,7 +282,7 @@ class FormBuilderRepository extends CoreRepository
             $ids = $form->fields->pluck('form_field_type_id');
 
             // file fields
-            if ($ids->contains(18) || $ids->contains(19)) {
+            if ($ids->contains(17) || $ids->contains(18)) {
                 return true;
             }
 
