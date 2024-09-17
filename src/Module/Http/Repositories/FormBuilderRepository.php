@@ -308,6 +308,22 @@ class FormBuilderRepository extends CoreRepository
           ? (boolean)$form->send_as_plain_text
           : false;
         $repo->send($settings);
+
+        $this->sendReceipt($request, $form, $settings);
+    }
+
+    public function sendReceipt($request, $form, $settings)
+    {
+        if (isset($form->receipt) && $form->receipt && $settings->reply_to) {
+            $repo = new EmailRepository();
+            $currentTo = $settings->to;
+            $settings->body = $repo->makeHtml($request, $form, 'receipt_message');
+            $settings->to = $settings->reply_to;
+            $settings->reply_to = $currentTo;
+            $settings->subject = $form->receipt_subject;
+            $settings->send_as_plain_text = false;
+            $repo->send($settings);
+        }
     }
 
     public function emailInCallback($request, $form)
