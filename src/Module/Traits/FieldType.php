@@ -132,21 +132,24 @@ trait FieldType
 
     private function getFileFieldTypes($settings)
     {
+        $images = 'image/*';
+        $files = 'application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.zip,.7zip';
+
         if (isset($settings->file_types)) {
             if ($settings->file_types == 'image') {
-                return 'image/*';
+                return $images;
             }
 
             if ($settings->file_types == 'document') {
-                return 'application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+                return $files;
             }
 
             if ($settings->file_types == 'image_document') {
-                return 'image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+                return $images.','.$files;
             }
         }
 
-        return null;
+        return $images.','.$files;
     }
 
     public function getViewAttribute()
