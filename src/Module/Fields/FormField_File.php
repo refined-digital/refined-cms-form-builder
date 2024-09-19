@@ -17,7 +17,7 @@ class FormField_File extends FormField {
     $maxFileSize = isset($field->settings->max_file_size) ? $field->settings->max_file_size : 2;
 @endphp
 
-@if(isset($field->settings->max_file_size) && $field->settings->max_file_size)
+@if($maxFileSize)
     <p class="form__note">
         Max file size of: {{ $maxFileSize }}MB
     </p>
