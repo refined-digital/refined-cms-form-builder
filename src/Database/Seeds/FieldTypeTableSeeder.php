@@ -36,6 +36,8 @@ class FieldTypeTableSeeder extends Seeder
             'Static',
             'Custom',
             'DOB',
+            'Group Start',
+            'Group End',
 
         ];
 
