@@ -13,9 +13,13 @@ class FormField_File extends FormField {
         ->attributes($field->attributes)        
 !!}    
 
+@php
+    $maxFileSize = isset($field->settings->max_file_size) ? $field->settings->max_file_size : 2;
+@endphp
+
 @if(isset($field->settings->max_file_size) && $field->settings->max_file_size)
     <p class="form__note">
-        Max file size of: {{ $field->settings->max_file_size }}MB
+        Max file size of: {{ $maxFileSize }}MB
     </p>
 @endif
 @section('scripts')
@@ -23,8 +27,7 @@ class FormField_File extends FormField {
 const field = document.querySelector('#{{$field->attributes['id']}}');
 if (field) {
     field.addEventListener('change', function () {
-        const maxFileSize = {{ $field->settings->max_file_size }};
-        console.log(field.files);
+        const maxFileSize = {{ $maxFileSize }};
         if (field.files.length > 0) {
             const fileSize = field.files.item(0).size;
             const fileMb = fileSize / 1024 ** 2;
