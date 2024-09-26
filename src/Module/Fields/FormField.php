@@ -87,4 +87,13 @@ class FormField {
 
         return '__formFields::'.basename($viewFile, '.blade.php');
     }
+
+    public function getValidationRules()
+    {
+        if (isset($this->validationRules)) {
+            return $this->validationRules;
+        }
+
+        return null;
+    }
 }

@@ -80,7 +80,7 @@ class FormSubmitRequest extends FormRequest
                     }
 
                     if ($field->form_field_type_id == 20 && $field->custom_field_class) {
-                        $model = forms()->getFieldClassByName($field->custom_field_class);
+                        $model = forms()->getFieldClass($field);
                         $validationRules = $model->getValidationRules();
                         if (isset($validationRules->required) && sizeof($validationRules->required)) {
                             foreach ($validationRules->required as $rule) {
