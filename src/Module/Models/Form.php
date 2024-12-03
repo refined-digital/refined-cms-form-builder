@@ -132,7 +132,7 @@ class Form extends CoreModel implements Sortable
                                     ],
                                     [
                                         'label' => 'Redirect to this page after form submission',
-                                        'name'  => 'redirect_page', 'type' => 'link'
+                                        'name'  => 'redirect_page', 
                                     ],
                                 ],
                             ]
