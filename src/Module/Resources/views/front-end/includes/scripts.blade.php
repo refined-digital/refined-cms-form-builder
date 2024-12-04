@@ -42,13 +42,19 @@ else {
           e.preventDefault();
 
           grecaptcha.ready(function() {
-            grecaptcha
-                  .execute('{{ env('RECAPTCHA_SITE_KEY') }}', { action: 'submit' })
-                  .then(function(token) {
-                    tokenField.value = token;
-                    submitForm{{ $form->id }}(form);
-                  })
-            ;
+            try {
+                grecaptcha
+                      .execute('{{ env('RECAPTCHA_SITE_KEY') }}', { action: 'submit' })
+                      .then(function(token) {
+                        tokenField.value = token;
+                        submitForm{{ $form->id }}(form);
+                      })
+                ;
+            } catch (e) {
+              console.warn(e.message);
+              submitButton.classList.remove('button--loading');
+              alert('An error has occured, please try later.')
+            }
           });
         }
       }
