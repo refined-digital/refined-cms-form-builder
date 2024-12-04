@@ -18,7 +18,7 @@
         </svg>
 
       </span>
-      <span class="form-button__loading-text">Loading...</span>
+      <span class="form-button__loading-text">{{ $form->loadingText }}</span>
     </span>
   </button>
 </div>

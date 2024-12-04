@@ -74,6 +74,11 @@ class FormsRepository
             $this->form->submitText = 'Submit';
         }
 
+        // set the default button loading text
+        if (!isset($this->form->loadingText) || (isset($this->form->loadingText) && !$this->form->loadingText)) {
+            $this->form->loadingText = 'Loading...';
+        }
+
         // stringify the classes
         $args->attributes['class'] = implode(' ', $args->attributes['class']);
 
@@ -113,6 +118,15 @@ class FormsRepository
     {
         if ($text) {
             $this->form->submitText = $text;
+        }
+
+        return $this;
+    }
+
+    public function setButtonLoadingText($text = false)
+    {
+        if ($text) {
+            $this->form->loadingText = $text;
         }
 
         return $this;
