@@ -4,7 +4,7 @@
       @if (str_contains('formBuilder::', $field->view) && view()->exists($field->view))
         @include($field->view)
       @else
-        {!! $field->view !!}
+        {!! $field->renderView($form->defaultFields, $selectFieldsOverride) !!}
       @endif
     @endforeach
   </div>

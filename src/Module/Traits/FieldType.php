@@ -161,7 +161,7 @@ trait FieldType
 
         $class = forms()->getFieldClass($this);
         if ($class) {
-            $view = $class->renderView();
+            $view = $class;
         } else {
             $view = 'formBuilder::front-end.fields.'.Str::slug($name);;
 
@@ -214,6 +214,12 @@ trait FieldType
         }
 
         return null;
+    }
+
+    public function renderView($defaultFields = [], $selectFieldsOverride = [])
+    {
+        $className = $this->view;
+        return (new $className($this, $defaultFields, $selectFieldsOverride))->renderView();
     }
 
 }

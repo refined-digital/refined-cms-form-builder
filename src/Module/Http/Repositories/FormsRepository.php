@@ -242,7 +242,7 @@ class FormsRepository
         }
 
         if (class_exists($class)) {
-            return new $class($field);
+            return $class;
         }
 
         return false;
@@ -250,8 +250,7 @@ class FormsRepository
 
     public function getFieldClassByName($customClassName)
     {
-        $class = $this->getCustomFieldClassName($customClassName);
-        return new $class;
+        return $this->getCustomFieldClassName($customClassName);
     }
 
     public function getCustomFieldClassName($customClassName)

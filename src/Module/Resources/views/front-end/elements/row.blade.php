@@ -28,7 +28,7 @@
   @if (str_contains('formBuilder::', $field->value) && view()->exists($field->view))
     @include($field->view)
   @else
-    {!! $field->view !!}
+    {!! $field->renderView($defaultFields, $selectFieldsOverride) !!}
   @endif
 
   @if ($field->show_label && ($field->label_position == 0 || $field->label_position == 2))
