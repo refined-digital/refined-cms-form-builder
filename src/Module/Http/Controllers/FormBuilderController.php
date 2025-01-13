@@ -196,7 +196,7 @@ class FormBuilderController extends CoreController
 
         if ($form->redirect_page) {
             $settings = json_decode($form->redirect_page);
-            if ($settings->url) {
+            if (isset($settings->url) && $settings->url) {
                 return redirect($settings->url)->with('complete', 1)->with('form', $form);
             }
         }
