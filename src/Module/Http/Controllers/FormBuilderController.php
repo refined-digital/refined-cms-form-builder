@@ -166,18 +166,25 @@ class FormBuilderController extends CoreController
      */
      public function submit(FormSubmitRequest $request, Form $form)
      {
+         // exit();
          // todo: add events to hook into after email has been sent
          // todo: maybe make the actual sending of the email as an event also
         switch($form->form_action) {
             case 2: // email in callback
                 $hasReturn = $this->formBuilderRepository->emailInCallback($request, $form);
                 if ($hasReturn) {
+                    if ($request->expectsJson()) {
+                        return response()->json(['form' => $form, 'return' => $hasReturn]);
+                    }
                     return $hasReturn;
                 }
                 break;
             case 3: // save to model
                 $hasReturn = $this->formBuilderRepository->saveToModel($request, $form);
                 if ($hasReturn) {
+                    if ($request->expectsJson()) {
+                        return response()->json(['form' => $form, 'return' => $hasReturn]);
+                    }
                     return $hasReturn;
                 }
                 break;
@@ -190,16 +197,17 @@ class FormBuilderController extends CoreController
             session()->forget('form_data');
         }
 
-        if ($request->ajax()) {
-            return response()->json($form);
+         if ($form->redirect_page) {
+             $settings = json_decode($form->redirect_page);
+             if (isset($settings->url) && $settings->url) {
+                 return redirect($settings->url)->with('complete', 1)->with('form', $form);
+             }
+         }
+
+        if ($request->expectsJson()) {
+            return response()->json($form->only(['confirmation', 'id']));
         }
 
-        if ($form->redirect_page) {
-            $settings = json_decode($form->redirect_page);
-            if (isset($settings->url) && $settings->url) {
-                return redirect($settings->url)->with('complete', 1)->with('form', $form);
-            }
-        }
 
         return redirect()->back()->with('complete', 1)->with('form', $form);
      }

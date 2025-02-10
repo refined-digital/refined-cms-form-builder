@@ -15,6 +15,7 @@ class FormsRepository
     protected $hasPayments = false;
     protected $templateNamespace = 'formBuilder';
     protected $selectFieldsOverride = [];
+    protected $replacement;
 
     public function __construct(FormBuilderRepository $repo)
     {
@@ -58,6 +59,14 @@ class FormsRepository
             'novalidate'
         ];
 
+        if ($this->form->recaptcha && env('RECAPTCHA_SITE_KEY')) {
+            $this->attributes['data-red'] = env('RECAPTCHA_SITE_KEY');
+        }
+
+        if ($this->replacement) {
+            $args->attributes['data-replacement'] = $this->replacement;
+        }
+
         if (sizeof($this->attributes)) {
             if (isset($this->attributes['class'])) {
                 $args->attributes['class'] = array_merge($args->attributes['class'], $this->attributes['class']);
@@ -97,6 +106,13 @@ class FormsRepository
         ];
 
         return view($template, $returnData);
+    }
+
+    public function setReplacementElement($replacement)
+    {
+        $this->replacement = $replacement;
+
+        return $this;
     }
 
 
