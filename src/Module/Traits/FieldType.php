@@ -109,6 +109,9 @@ trait FieldType
             case 6:
                 $args['class'] .= ' form__control--checkbox';
                 break;
+            case 7:
+                $args['inputmode'] = 'decimal';
+                break;
             case 12:
                 unset($args['class']);
                 unset($args['required']);
