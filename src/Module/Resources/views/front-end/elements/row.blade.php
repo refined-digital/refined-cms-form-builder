@@ -15,6 +15,9 @@
     if ($field->show_label && $field->label_position == 2) {
         $fieldClasses[] = 'form__row--floating-label';
     }
+    if ($field->form_field_type_id == 19) {
+        $fieldClasses[] = 'form__row--static';
+    }
 @endphp
 <div class="{{ implode(' ', $fieldClasses) }}"{!! $field->required ? ' data-required-label="'.$field->name.'"' : ' '!!}>
   @if ($field->show_label && $field->label_position == 1)
