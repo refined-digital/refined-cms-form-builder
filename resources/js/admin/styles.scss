@@ -14,30 +14,43 @@ $fb-radius: 6px;
   color: $fb-text;
   font-size: 14px;
 
+  // mirror the CMS's legacy .tab__nav so the editor feels native. The editor
+  // mounts inside .app__content (which has padding); pull the bar out to the
+  // content edges and give it the same white/shadow treatment.
   &__tabs {
-    display: flex;
-    gap: 4px;
-    border-bottom: 1px solid $fb-border;
-    margin-bottom: 20px;
+    display: block;
+    background: #fff;
+    border-top: 2px solid #f7fafc;
+    padding: 0 15px;
+    box-shadow: 1px 0 20px rgba(0, 0, 0, 0.08);
+    position: relative;
+    z-index: 2;
+    // .app__content has 25px padding; pull the bar out so it spans the body
+    // edge-to-edge like the CMS's legacy .app__content-header tab nav.
+    margin: -25px -25px 25px;
+
+    @media only screen and (max-width: 600px) {
+      margin: -25px -25px 20px;
+    }
   }
 
   &__tab {
     appearance: none;
     background: none;
     border: none;
-    padding: 12px 16px;
+    margin: 0;
+    padding: 10px 15px;
+    display: inline-block;
     font-size: 14px;
-    color: $fb-muted;
+    font-weight: bold;
+    color: var(--color-text, #{$fb-muted});
     cursor: pointer;
-    border-bottom: 2px solid transparent;
-    margin-bottom: -1px;
 
-    &:hover { color: $fb-text; }
+    &:hover { color: var(--color-main-color-1, #{$fb-blue}); }
 
     &--active {
-      color: $fb-text;
-      border-bottom-color: $fb-blue;
-      font-weight: 500;
+      background: var(--color-main-color-1, #{$fb-blue});
+      color: #fff;
     }
   }
 

@@ -24,7 +24,6 @@ class FormBuilderController extends CoreController
     {
         $this->formBuilderRepository = new FormBuilderRepository();
         $this->formBuilderRepository->setModel($this->model);
-        $this->buttons[] = ['class' => 'button button--blue', 'name' => 'Save & Edit Fields', 'href' => '#'];
 
         parent::__construct($coreRepository);
     }
@@ -33,9 +32,8 @@ class FormBuilderController extends CoreController
 
         $table = new \stdClass();
         $table->fields = [
-            (object) [ 'name' => 'Name', 'field' => 'name', 'sortable' => true, 'route' => 'refined.form-builder.fields.index'],
-            (object) [ 'name' => 'Subject', 'field' => 'subject', 'sortable' => true, 'route' => 'refined.form-builder.fields.index'],
-            (object) [ 'name' => 'Email To', 'field' => 'email_to', 'sortable' => true, 'route' => 'refined.form-builder.fields.index'],
+            (object) [ 'name' => 'Name', 'field' => 'name', 'sortable' => true, 'route' => 'refined.form-builder.edit'],
+            (object) [ 'name' => 'Subject', 'field' => 'subject', 'sortable' => true, 'route' => 'refined.form-builder.edit'],
         ];
         $table->routes = (object) [
             'edit'      => 'refined.form-builder.edit',
@@ -58,8 +56,27 @@ class FormBuilderController extends CoreController
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
+    public function create()
+    {
+        // minimal create: just a name; saving drops the user into the editor
+        // (the editor autosaves everything else via the API). Buttons are
+        // rendered as objects (matches CoreController's normalisation).
+        $this->buttons = [
+            (object) ['class' => 'button button--blue', 'name' => 'Create Form', 'href' => '#'],
+        ];
+
+        return parent::create();
+    }
+
     public function edit($item)
     {
+        // the visual editor autosaves every change via the JSON API, so the
+        // legacy Save / Save & Return / Save & New header buttons aren't needed.
+        // Keep a single link back to the forms list.
+        $this->buttons = [
+            (object) ['class' => 'button button--grey', 'name' => 'Back to Forms', 'href' => route('refined.form-builder.index')],
+        ];
+
         // get the instance
         $data = $this->model::findOrFail($item);
 

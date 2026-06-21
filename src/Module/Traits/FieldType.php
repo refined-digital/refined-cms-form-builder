@@ -174,11 +174,16 @@ trait FieldType
         if ($class) {
             $view = $class;
         } else {
-            $view = 'formBuilder::front-end.fields.'.Str::slug($name);;
+            $view = 'formBuilder::front-end.fields.'.Str::slug($name);
 
-            if ($this->form_field_type_id == 20) {
-                $model = forms()->getFieldClassByName($this->custom_field_class);
-                $view = $model->getView();
+            // custom field (type 20): resolve the host app's class only when it
+            // actually exists, otherwise fall back to the default view so a
+            // missing/blank custom class never blows up rendering or the API.
+            if ($this->form_field_type_id == 20 && $this->custom_field_class) {
+                $customClass = forms()->getFieldClassByName($this->custom_field_class);
+                if (is_string($customClass) && class_exists($customClass)) {
+                    $view = (new $customClass($this))->getView();
+                }
             }
         }
 

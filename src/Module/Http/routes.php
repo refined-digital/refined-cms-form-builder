@@ -41,7 +41,6 @@ Route::namespace('FormBuilder\Module\Http\Controllers')
             })
         ;
 
-        Route::resource('form-builder.fields', 'FormFieldsController');
         Route::resource('form-builder', 'FormBuilderController');
     })
 ;
