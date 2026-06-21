@@ -2,6 +2,22 @@
 @import 'mixins/respond';
 @import 'functions';
 
+// front-end validation states (Phase 5)
+.form__control--error {
+  border-color: #e2483d !important;
+}
+
+.form__error {
+  color: #e2483d;
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+.button--loading {
+  opacity: .7;
+  pointer-events: none;
+}
+
 .form {
   &__payment-gateway {
     .form__label {

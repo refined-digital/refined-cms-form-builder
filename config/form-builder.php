@@ -255,5 +255,21 @@ return [
     'accepted_mime_types' => 'bmp,csv,doc,docx,gif,jpeg,jpg,pdf,png,ppt,pptx,tif,tiff,txt,xls,xlsx',
     'date_format' => 'd/m/Y',
     'datetime_format' => 'd/m/Y g:ia',
-    'skip_validation' => [19, 12]
+    'skip_validation' => [19, 12],
+
+    // queue email notification delivery (only effective when QUEUE_CONNECTION is
+    // not 'sync'; the EmailSubmission record is always written synchronously so
+    // the CSV export stays reliable).
+    'queue_emails' => true,
+
+    // reCAPTCHA v3 score threshold (Phase 9). Below this is rejected as a bot.
+    'recaptcha_threshold' => 0.5,
+
+    // gibberish anti-spam thresholds (Phase 9). Keep in sync with the front-end
+    // resources/js/front-end/gibberish.js.
+    'gibberish' => [
+        'min_length' => 8,
+        'min_vowel_ratio' => 0.15,
+        'max_consonant_run' => 5,
+    ],
 ];

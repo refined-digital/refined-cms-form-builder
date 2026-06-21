@@ -4,6 +4,8 @@ namespace RefinedDigital\FormBuilder\Module\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use RefinedDigital\FormBuilder\Module\Rules\ReCaptcha;
+use RefinedDigital\FormBuilder\Module\Rules\Gibberish;
+use RefinedDigital\FormBuilder\Module\Support\ConditionEvaluator;
 
 class FormSubmitRequest extends FormRequest
 {
@@ -33,10 +35,16 @@ class FormSubmitRequest extends FormRequest
 
         if (isset($form->fields) && $form->fields && $form->fields->count()) {
             $args = [];
+            $data = $this->all();
             foreach ($form->fields as $field) {
                 if ($field->required) {
                     // skip fields that don't require validate, but may be marked as such
                     if (in_array($field->form_field_type_id, $skip)) {
+                        continue;
+                    }
+
+                    // skip fields hidden by their conditional logic (Phase 4)
+                    if (ConditionEvaluator::isHidden($field, $data)) {
                         continue;
                     }
                     $required = ['required'];
@@ -104,6 +112,28 @@ class FormSubmitRequest extends FormRequest
                         $args[$field->field_name] = $required;
                     }
 
+                    // a field-level custom error message overrides every generated
+                    // message for that field (required/email/min/etc.)
+                    if (!empty($field->error_message)) {
+                        foreach (array_keys($this->customMessages) as $key) {
+                            if (str_starts_with($key, $field->field_name.'.')) {
+                                $this->customMessages[$key] = $field->error_message;
+                            }
+                        }
+                    }
+
+                }
+
+                // gibberish anti-spam on Text (1) and Textarea (2), unless the
+                // field opts out via settings.gibberish_check === false, and unless
+                // the field is conditionally hidden
+                if (in_array($field->form_field_type_id, [1, 2])
+                    && (!isset($field->settings->gibberish_check) || $field->settings->gibberish_check !== false)
+                    && !ConditionEvaluator::isHidden($field, $data ?? $this->all())) {
+                    $args[$field->field_name] = array_merge(
+                        (array) ($args[$field->field_name] ?? []),
+                        [new Gibberish($field->name)]
+                    );
                 }
             }
 
@@ -111,10 +141,9 @@ class FormSubmitRequest extends FormRequest
             $args['hname']  = 'honeypot';
             $args['htime']  = 'required|honeytime:5';
 
-            // check for captcha
-            // todo: do the real captcha validation
+            // invisible reCAPTCHA v3 (score-based)
             if($form->recaptcha) {
-                $args['_captcha']  = ['required', new ReCaptcha()];
+                $args['_captcha']  = ['required', new ReCaptcha('submit')];
                 $this->customMessages['_captcha.required']  = 'Robot Detected';
             }
         }

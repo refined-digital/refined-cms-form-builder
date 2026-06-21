@@ -6,10 +6,18 @@
 @else
   <div class="form">
     @include('formBuilder::front-end.includes.opener')
+
+    {{-- hidden section: hidden fields + integration-injected hidden inputs --}}
     @include('formBuilder::front-end.includes.fields')
-    @if ($hasPayments)
-      @include('formBuilder::front-end.includes.payment-gateways')
+    @if (!empty($integrationHidden))
+      <div class="form__fields--integration-hidden">{!! $integrationHidden !!}</div>
     @endif
+
+    {{-- integration-injected visible UI (e.g. payment card) sits before submit --}}
+    @if (!empty($integrationVisible))
+      <div class="form__fields form__fields--integration">{!! $integrationVisible !!}</div>
+    @endif
+
     @include('formBuilder::front-end.includes.buttons')
     @include('formBuilder::front-end.includes.closer')
   </div><!-- / form -->

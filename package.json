@@ -3,17 +3,19 @@
   "version": "1.12.4",
   "description": "Form Builder for Refined CMS",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "dev": "npm run development",
-    "development": "NODE_ENV=development node_modules/webpack/bin/webpack.js --progress --config=node_modules/laravel-mix/setup/webpack.config.js",
-    "watch": "npm run development -- --watch",
-    "hot": "NODE_ENV=development node_modules/webpack-dev-server/bin/webpack-dev-server.js --inline --hot --config=node_modules/laravel-mix/setup/webpack.config.js",
-    "prod": "npm run production",
-    "production": "NODE_ENV=production node_modules/webpack/bin/webpack.js --config=node_modules/laravel-mix/setup/webpack.config.js",
+    "dev": "npm run build:frontend && vite build --watch",
+    "development": "npm run build",
+    "watch": "npm run dev",
+    "build": "vite build && npm run build:frontend",
+    "build:frontend": "vite build --config vite.frontend.config.js",
+    "prod": "npm run build",
+    "production": "npm run build",
     "publish-and-tag": "git push --tags && git push origin master",
     "version:patch": "npm version patch && npm run publish-and-tag",
     "version:minor": "npm version minor && npm run publish-and-tag",
-    "version:marjor": "npm version major && npm run publish-and-tag"
+    "version:major": "npm version major && npm run publish-and-tag"
   },
   "repository": {
     "type": "git",
@@ -25,10 +27,15 @@
     "url": "https://github.com/refineddigital/cms-product-manager/issues"
   },
   "homepage": "https://github.com/refineddigital/cms-product-manager#readme",
-  "dependencies": {},
+  "dependencies": {
+    "vue": "^3.5.38",
+    "vuedraggable": "^4.1.0",
+    "zod": "^4.4.3"
+  },
   "devDependencies": {
-    "laravel-mix": "^6.0.31",
-    "sass": "^1.42.1",
-    "sass-loader": "^12.1.0"
+    "@vitejs/plugin-vue": "^6.0.0",
+    "sass": "^1.101.0",
+    "terser": "^5.48.0",
+    "vite": "^7.0.0"
   }
 }

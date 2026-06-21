@@ -12,7 +12,6 @@ class FormsRepository
     protected $template = 'front-end.form';
     protected $formBuilderRepository;
     protected $attributes = [];
-    protected $hasPayments = false;
     protected $templateNamespace = 'formBuilder';
     protected $selectFieldsOverride = [];
     protected $replacement;
@@ -55,7 +54,8 @@ class FormsRepository
         $args = new \stdClass();
         $args->route = route('refined.form-builder.submit', $this->form->id);
         $args->attributes = [
-            'class' => ['form--'.$this->form->id],
+            'class' => ['form--builder', 'form--'.$this->form->id],
+            'data-fb-form' => $this->form->id,
             'novalidate'
         ];
 
@@ -78,7 +78,11 @@ class FormsRepository
             }
         }
 
-        // set the default button text
+        // set the default button text (DB column submit_text wins, then any
+        // fluent override, then the default)
+        if (!empty($this->form->submit_text)) {
+            $this->form->submitText = $this->form->submit_text;
+        }
         if (!isset($this->form->submitText) || (isset($this->form->submitText) && !$this->form->submitText)) {
             $this->form->submitText = 'Submit';
         }
@@ -97,15 +101,63 @@ class FormsRepository
 
         $fields = $this->setFields();
 
+        $integrationMarkup = $this->integrationMarkup();
+
         $returnData = [
             'args' => $args,
             'form' => $this->form,
-            'hasPayments' => $this->hasPayments,
+            'integrationHidden' => $integrationMarkup['hidden'],
+            'integrationVisible' => $integrationMarkup['visible'],
             'fields' => $fields,
             'selectFieldsOverride' => $this->selectFieldsOverride
         ];
 
         return view($template, $returnData);
+    }
+
+    /**
+     * Collect front-end markup contributed by the form's enabled integrations
+     * (Phase 7 generic injection hook). An integration's aggregate `view` is either
+     * a closure or a class with render($form, $config); it returns either a string
+     * (treated as visible markup) or ['hidden' => '…', 'visible' => '…'].
+     */
+    protected function integrationMarkup(): array
+    {
+        $hidden = '';
+        $visible = '';
+
+        $aggregate = app(\RefinedDigital\CMS\Modules\Core\Aggregates\FormBuilderIntegrationAggregate::class);
+
+        foreach ($this->form->integrations()->where('enabled', true)->get() as $row) {
+            $definition = $aggregate->get($row->integration_key);
+            if (!$definition || empty($definition['view'])) {
+                continue;
+            }
+
+            $view = $definition['view'];
+            $config = $row->config ?? [];
+
+            try {
+                if (is_callable($view)) {
+                    $markup = $view($this->form, $config);
+                } elseif (is_string($view) && class_exists($view)) {
+                    $markup = app($view)->render($this->form, $config);
+                } else {
+                    continue;
+                }
+            } catch (\Throwable $e) {
+                continue;
+            }
+
+            if (is_array($markup)) {
+                $hidden .= $markup['hidden'] ?? '';
+                $visible .= $markup['visible'] ?? '';
+            } elseif (is_string($markup)) {
+                $visible .= $markup;
+            }
+        }
+
+        return ['hidden' => $hidden, 'visible' => $visible];
     }
 
     public function setReplacementElement($replacement)
@@ -144,13 +196,6 @@ class FormsRepository
         if ($text) {
             $this->form->loadingText = $text;
         }
-
-        return $this;
-    }
-
-    public function setHasPayments($value)
-    {
-        $this->hasPayments = $value;
 
         return $this;
     }

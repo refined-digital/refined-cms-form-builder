@@ -17,12 +17,14 @@ class Form extends CoreModel implements Sortable
         'form_action',
         'send_as_plain_text',
         'name',
+        'submit_text',
+        'submit_action',
+        'redirect_url',
         'subject',
         'email_to',
         'reply_to',
         'cc',
         'bcc',
-        'payment',
         'callback',
         'message',
         'confirmation',
@@ -43,6 +45,16 @@ class Form extends CoreModel implements Sortable
         'send_as_plain_text' => 'integer',
         'receipt' => 'integer',
     ];
+
+    public function notifications()
+    {
+        return $this->hasMany(FormEmailNotification::class, 'form_id')->orderBy('position');
+    }
+
+    public function integrations()
+    {
+        return $this->hasMany(FormIntegration::class, 'form_id');
+    }
 
     /**
      * The fields to be displayed for creating / editing

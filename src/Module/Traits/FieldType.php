@@ -101,6 +101,14 @@ trait FieldType
             $args['autocomplete'] = uniqid(); // chrome ignores off, so set it to a random string
         }
 
+        // visibility: visible (default) | hidden | disabled | readonly
+        $visibility = $this->attributes['visibility'] ?? 'visible';
+        if ($visibility === 'disabled') {
+            $args['disabled'] = 'disabled';
+        } elseif ($visibility === 'readonly') {
+            $args['readonly'] = 'readonly';
+        }
+
         switch ($this->form_field_type_id) {
             case 4:
                 $args['class'] .= ' form__control--radio';
@@ -214,6 +222,11 @@ trait FieldType
     {
         if (old($this->field_name)) {
             return old($this->field_name);
+        }
+
+        // seed the default value when there's no posted/old value
+        if (isset($this->attributes['default_value']) && $this->attributes['default_value'] !== '' && $this->attributes['default_value'] !== null) {
+            return $this->attributes['default_value'];
         }
 
         return null;

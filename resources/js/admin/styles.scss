@@ -1,0 +1,623 @@
+// Form Builder visual editor styles. Scoped under .fb-editor so they don't leak
+// into the surrounding CMS admin chrome.
+
+$fb-border: #e2e5e9;
+$fb-border-strong: #cfd4da;
+$fb-bg: #f6f7f9;
+$fb-text: #2b3038;
+$fb-muted: #8a929c;
+$fb-blue: #2d7ff9;
+$fb-red: #e2483d;
+$fb-radius: 6px;
+
+.fb-editor {
+  color: $fb-text;
+  font-size: 14px;
+
+  &__tabs {
+    display: flex;
+    gap: 4px;
+    border-bottom: 1px solid $fb-border;
+    margin-bottom: 20px;
+  }
+
+  &__tab {
+    appearance: none;
+    background: none;
+    border: none;
+    padding: 12px 16px;
+    font-size: 14px;
+    color: $fb-muted;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+
+    &:hover { color: $fb-text; }
+
+    &--active {
+      color: $fb-text;
+      border-bottom-color: $fb-blue;
+      font-weight: 500;
+    }
+  }
+
+  &__layout {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 24px;
+    align-items: start;
+  }
+}
+
+// ---- Canvas ----
+.fb-canvas {
+  background: #fff;
+  border: 1px solid $fb-border;
+  border-radius: $fb-radius;
+  padding: 20px 24px;
+
+  &__head { margin-bottom: 16px; }
+
+  &__page {
+    font-size: 11px;
+    letter-spacing: .08em;
+    color: $fb-muted;
+    font-weight: 600;
+  }
+
+  &__loading, &__empty {
+    padding: 40px;
+    text-align: center;
+    color: $fb-muted;
+  }
+
+  &__list { display: flex; flex-direction: column; gap: 4px; }
+
+  &__submit {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px dashed $fb-border;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__submit-edit {
+    appearance: none;
+    border: 1px solid $fb-border;
+    background: #fff;
+    border-radius: $fb-radius;
+    width: 32px;
+    height: 32px;
+    color: $fb-muted;
+    cursor: pointer;
+    &:hover { color: $fb-text; }
+  }
+}
+
+.fb-submit-btn {
+  appearance: none;
+  border: none;
+  background: $fb-red;
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: $fb-radius;
+  font-size: 14px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  &__arrow { font-size: 12px; }
+}
+
+// ---- Field rows ----
+.fb-row {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid transparent;
+  border-radius: $fb-radius;
+  cursor: pointer;
+
+  &:hover {
+    border-color: $fb-border;
+    background: $fb-bg;
+    .fb-row__actions { opacity: 1; }
+    .fb-row__handle { opacity: 1; }
+  }
+
+  &__handle {
+    opacity: 0;
+    color: $fb-muted;
+    cursor: grab;
+    padding-top: 2px;
+  }
+
+  &__body { flex: 1; min-width: 0; }
+
+  &__label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 2px;
+  }
+
+  &__req { color: $fb-red; margin-left: 2px; }
+
+  &__note {
+    font-size: 12px;
+    color: $fb-muted;
+    margin: 0 0 6px;
+  }
+
+  &__preview {
+    width: 100%;
+    border: 1px solid $fb-border-strong;
+    border-radius: $fb-radius;
+    padding: 8px 10px;
+    background: #fff;
+    color: $fb-muted;
+    font-size: 13px;
+  }
+
+  &__options { display: flex; flex-direction: column; gap: 4px; }
+  &__option { font-size: 13px; color: $fb-text; }
+
+  &__structural {
+    font-size: 12px;
+    color: $fb-muted;
+    font-style: italic;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    opacity: 0;
+    transition: opacity .12s;
+  }
+
+  &__type {
+    font-size: 11px;
+    color: $fb-muted;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+
+  &__action {
+    appearance: none;
+    border: 1px solid $fb-border;
+    background: #fff;
+    border-radius: 4px;
+    width: 28px;
+    height: 28px;
+    color: $fb-muted;
+    cursor: pointer;
+    &:hover { color: $fb-text; }
+    &--danger:hover { color: $fb-red; border-color: $fb-red; }
+  }
+}
+
+// ---- Palette ----
+.fb-palette {
+  &__group { margin-bottom: 22px; }
+
+  &__heading {
+    font-size: 11px;
+    letter-spacing: .06em;
+    color: $fb-muted;
+    font-weight: 600;
+    margin: 0 0 10px;
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  &__item {
+    appearance: none;
+    border: 1px solid $fb-border;
+    background: #fff;
+    border-radius: $fb-radius;
+    padding: 10px 12px;
+    font-size: 13px;
+    color: $fb-text;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-align: left;
+
+    i { color: $fb-muted; width: 16px; text-align: center; }
+
+    &:hover {
+      border-color: $fb-blue;
+      color: $fb-blue;
+      i { color: $fb-blue; }
+    }
+  }
+}
+
+// ---- Modal ----
+.fb-modal {
+  &__overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 24, 30, .45);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 60px 20px;
+    z-index: 9999;
+    overflow-y: auto;
+  }
+
+  background: #fff;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 620px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.25);
+
+  &--small { max-width: 420px; }
+
+  &__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 22px;
+    border-bottom: 1px solid $fb-border;
+  }
+
+  &__title { margin: 0; font-size: 16px; }
+
+  &__close {
+    appearance: none;
+    border: none;
+    background: none;
+    font-size: 24px;
+    line-height: 1;
+    color: $fb-muted;
+    cursor: pointer;
+  }
+
+  &__tabs {
+    display: flex;
+    gap: 4px;
+    padding: 0 22px;
+    border-bottom: 1px solid $fb-border;
+  }
+
+  &__tab {
+    appearance: none;
+    background: none;
+    border: none;
+    padding: 12px 14px;
+    font-size: 13px;
+    color: $fb-muted;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    &--active { color: $fb-text; border-bottom-color: $fb-blue; font-weight: 500; }
+  }
+
+  &__body { padding: 22px; }
+  &__panel { display: flex; flex-direction: column; gap: 16px; }
+
+  &__foot {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 16px 22px;
+    border-top: 1px solid $fb-border;
+  }
+}
+
+// ---- Fields (modal form controls) ----
+.fb-field {
+  &__label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 6px;
+  }
+
+  &__req { color: $fb-red; }
+
+  &__input {
+    width: 100%;
+    border: 1px solid $fb-border-strong;
+    border-radius: $fb-radius;
+    padding: 9px 11px;
+    font-size: 14px;
+    color: $fb-text;
+    background: #fff;
+
+    &:focus { outline: none; border-color: $fb-blue; }
+    &:disabled { background: $fb-bg; color: $fb-muted; }
+  }
+
+  &__note { font-size: 12px; color: $fb-muted; margin: 6px 0 0; }
+}
+
+// ---- Toggle ----
+.fb-toggle {
+  appearance: none;
+  border: none;
+  background: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+
+  &__track {
+    width: 38px;
+    height: 22px;
+    background: $fb-border-strong;
+    border-radius: 12px;
+    position: relative;
+    transition: background .15s;
+  }
+
+  &__thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 18px;
+    height: 18px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform .15s;
+  }
+
+  &__label { font-size: 13px; color: $fb-muted; }
+
+  &--on {
+    .fb-toggle__track { background: $fb-blue; }
+    .fb-toggle__thumb { transform: translateX(16px); }
+    .fb-toggle__label { color: $fb-text; }
+  }
+}
+
+// ---- Options builder ----
+.fb-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  &__row { display: flex; gap: 8px; align-items: center; }
+
+  &__remove {
+    appearance: none;
+    border: 1px solid $fb-border;
+    background: #fff;
+    border-radius: 4px;
+    width: 32px;
+    height: 32px;
+    color: $fb-muted;
+    cursor: pointer;
+    flex: 0 0 auto;
+    &:hover { color: $fb-red; }
+  }
+
+  &__add { align-self: flex-start; }
+}
+
+// ---- Conditions ----
+.fb-conditions {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  &__header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: $fb-muted;
+    select { width: auto; }
+  }
+
+  &__rule {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+}
+
+// ---- generic buttons (fall back if core classes unavailable) ----
+.fb-editor .button {
+  appearance: none;
+  border: 1px solid $fb-border-strong;
+  background: #fff;
+  border-radius: $fb-radius;
+  padding: 9px 16px;
+  font-size: 14px;
+  cursor: pointer;
+
+  &--blue { background: $fb-blue; border-color: $fb-blue; color: #fff; }
+  &--grey { background: $fb-bg; color: $fb-text; }
+  &--red { background: $fb-red; border-color: $fb-red; color: #fff; }
+}
+
+// ---- tab panels ----
+.fb-tab-panel {
+  background: #fff;
+  border: 1px solid $fb-border;
+  border-radius: $fb-radius;
+  padding: 24px;
+
+  &__placeholder { color: $fb-muted; text-align: center; margin: 0; padding: 24px; }
+
+  &--form { max-width: 620px; display: flex; flex-direction: column; gap: 16px; }
+}
+
+// ---- list (notifications / integrations) ----
+.fb-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  &__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  &__title { margin: 0; font-size: 15px; }
+  &__empty { color: $fb-muted; padding: 20px 0; }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    border: 1px solid $fb-border;
+    border-radius: $fb-radius;
+    margin-bottom: 8px;
+  }
+
+  &__main { cursor: pointer; flex: 1; }
+  &__name { display: block; font-weight: 500; }
+  &__sub { display: block; font-size: 12px; color: $fb-muted; }
+
+  &__actions { display: flex; align-items: center; gap: 8px; }
+
+  &__badge {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: #1b8a4b;
+    &--off { color: $fb-muted; }
+  }
+}
+
+.fb-field__note--error { color: $fb-red; }
+
+// ---- simple rich text ----
+.fb-richtext {
+  border: 1px solid $fb-border-strong;
+  border-radius: $fb-radius;
+  overflow: hidden;
+
+  &__toolbar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 8px;
+    background: $fb-bg;
+    border-bottom: 1px solid $fb-border;
+
+    button {
+      appearance: none;
+      border: 1px solid transparent;
+      background: none;
+      border-radius: 4px;
+      width: 30px;
+      height: 28px;
+      cursor: pointer;
+      color: $fb-text;
+      &:hover { background: #fff; border-color: $fb-border; }
+    }
+  }
+
+  &__sep { width: 1px; height: 20px; background: $fb-border; margin: 0 4px; }
+
+  &__tokens { position: relative; }
+
+  &__token-btn {
+    width: auto !important;
+    padding: 0 10px;
+    font-size: 12px;
+    color: $fb-blue !important;
+  }
+
+  &__menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 10;
+    list-style: none;
+    margin: 4px 0 0;
+    padding: 4px;
+    background: #fff;
+    border: 1px solid $fb-border;
+    border-radius: $fb-radius;
+    box-shadow: 0 8px 24px rgba(0,0,0,.12);
+    min-width: 180px;
+    max-height: 240px;
+    overflow-y: auto;
+
+    li {
+      padding: 7px 10px;
+      font-size: 13px;
+      border-radius: 4px;
+      cursor: pointer;
+      &:hover { background: $fb-bg; }
+    }
+  }
+
+  &__editable {
+    min-height: 120px;
+    border: none !important;
+    border-radius: 0 !important;
+    &:focus { outline: none; }
+  }
+}
+
+.fb-token {
+  display: inline-block;
+  background: #e7f0ff;
+  color: $fb-blue;
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 12px;
+  margin: 0 1px;
+}
+
+// ---- integrations ----
+.fb-integration {
+  border: 1px solid $fb-border;
+  border-radius: $fb-radius;
+  margin-bottom: 12px;
+
+  &__head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+  }
+
+  &__icon {
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: $fb-muted;
+    :deep(svg) { width: 24px; height: 24px; }
+  }
+
+  &__meta { flex: 1; }
+  &__name { display: block; font-weight: 500; }
+  &__desc { display: block; font-size: 12px; color: $fb-muted; }
+
+  &__toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    .fb-field__label { margin: 0; }
+  }
+
+  &__body {
+    padding: 16px;
+    border-top: 1px solid $fb-border;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+}

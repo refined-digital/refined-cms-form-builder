@@ -1,6 +1,6 @@
 <div class="form__row form__row--buttons">
   {!! Honeypot::generate('hname', 'htime') !!}
-  <button class="button">
+  <button type="submit" class="button" data-fb-submit disabled>
     <span class="form-button__text">
       {!! $form->submitText !!}
     </span>

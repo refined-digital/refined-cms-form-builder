@@ -18,8 +18,31 @@
     if ($field->form_field_type_id == 19) {
         $fieldClasses[] = 'form__row--static';
     }
+
+    // conditional logic rules for the front-end engine (Phase 4)
+    $conditionAttr = '';
+    if (!empty($field->visibility_rules)) {
+        $rules = is_string($field->visibility_rules)
+            ? $field->visibility_rules
+            : json_encode($field->visibility_rules);
+        $conditionAttr = ' data-fb-conditions="'.htmlspecialchars($rules, ENT_QUOTES).'"';
+    }
+
+    // front-end validation hints (Phase 5/9)
+    $dataAttrs = ' data-fb-field="'.$field->field_name.'"';
+    if ($field->required) {
+        $dataAttrs .= ' data-fb-required="1"';
+    }
+    if (!empty($field->error_message)) {
+        $dataAttrs .= ' data-fb-error="'.htmlspecialchars($field->error_message, ENT_QUOTES).'"';
+    }
+    // gibberish opt-out flag for Text/Textarea
+    if (in_array($field->form_field_type_id, [1, 2])
+        && isset($field->settings->gibberish_check) && $field->settings->gibberish_check === false) {
+        $dataAttrs .= ' data-fb-gibberish="0"';
+    }
 @endphp
-<div class="{{ implode(' ', $fieldClasses) }}"{!! $field->required ? ' data-required-label="'.$field->name.'"' : ' '!!}>
+<div class="{{ implode(' ', $fieldClasses) }}"{!! $dataAttrs !!}{!! $conditionAttr !!}{!! $field->required ? ' data-required-label="'.$field->name.'"' : ' '!!}>
   @if ($field->show_label && $field->label_position == 1)
     @include('formBuilder::front-end.elements.label')
   @endif

@@ -166,51 +166,52 @@ class FormBuilderController extends CoreController
      */
      public function submit(FormSubmitRequest $request, Form $form)
      {
-         // exit();
-         // todo: add events to hook into after email has been sent
-         // todo: maybe make the actual sending of the email as an event also
-        switch($form->form_action) {
-            case 2: // email in callback
-                $hasReturn = $this->formBuilderRepository->emailInCallback($request, $form);
-                if ($hasReturn) {
-                    if ($request->expectsJson()) {
-                        return response()->json(['form' => $form, 'return' => $hasReturn]);
-                    }
-                    return $hasReturn;
-                }
-                break;
-            case 3: // save to model
-                $hasReturn = $this->formBuilderRepository->saveToModel($request, $form);
-                if ($hasReturn) {
-                    if ($request->expectsJson()) {
-                        return response()->json(['form' => $form, 'return' => $hasReturn]);
-                    }
-                    return $hasReturn;
-                }
-                break;
-            default:
-                $this->formBuilderRepository->compileAndSend($request, $form);
-            break;
+        // run enabled integrations first; a failure aborts the whole submission
+        // (no notifications, no redirect) — used by Payments for declined charges
+        $failure = $this->formBuilderRepository->runIntegrations($request, $form);
+        if ($failure) {
+            $message = $failure->message ?? 'We could not process your submission.';
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $message, 'errors' => $failure->errors ?? []], 422);
+            }
+            return redirect()->back()->withInput()->withErrors(['form' => $message]);
+        }
+
+        // send the active email notifications unless an enabled integration opted
+        // out via Send Email = No
+        if ($this->formBuilderRepository->shouldSendNotifications($form)) {
+            $this->formBuilderRepository->compileAndSend($request, $form);
         }
 
         if (session()->has('form_data')) {
             session()->forget('form_data');
         }
 
-         if ($form->redirect_page) {
-             $settings = json_decode($form->redirect_page);
-             if (isset($settings->url) && $settings->url) {
-                 if ($request->expectsJson()) {
-                     return response()->json([...$form->only(['id']), 'url' => help()->checkLink($settings->url)]);
-                 }
-                 return redirect($settings->url)->with('complete', 1)->with('form', $form);
-             }
-         }
+        // behaviour outcome (Phase 6): message | redirect_page | redirect_url
+        $action = $form->submit_action ?: 'message';
 
+        if ($action === 'redirect_page' && $form->redirect_page) {
+            $settings = json_decode($form->redirect_page);
+            if (isset($settings->url) && $settings->url) {
+                $url = help()->checkLink($settings->url);
+                if ($request->expectsJson()) {
+                    return response()->json([...$form->only(['id']), 'url' => $url]);
+                }
+                return redirect($url)->with('complete', 1)->with('form', $form);
+            }
+        }
+
+        if ($action === 'redirect_url' && $form->redirect_url) {
+            if ($request->expectsJson()) {
+                return response()->json([...$form->only(['id']), 'url' => $form->redirect_url]);
+            }
+            return redirect($form->redirect_url)->with('complete', 1)->with('form', $form);
+        }
+
+        // default: show the on-screen confirmation message
         if ($request->expectsJson()) {
             return response()->json($form->only(['confirmation', 'id']));
         }
-
 
         return redirect()->back()->with('complete', 1)->with('form', $form);
      }
