@@ -16,9 +16,13 @@
           <span class="fb-list__sub">{{ n.to }}</span>
         </div>
         <div class="fb-list__actions">
-          <span class="fb-list__badge" :class="{ 'fb-list__badge--off': !Number(n.active) }">
-            {{ Number(n.active) ? 'Active' : 'Inactive' }}
-          </span>
+          <button
+            type="button"
+            class="fb-list__badge"
+            :class="{ 'fb-list__badge--off': !Number(n.active) }"
+            :title="Number(n.active) ? 'Click to disable' : 'Click to enable'"
+            @click="toggleActive(n)"
+          >{{ Number(n.active) ? 'Active' : 'Inactive' }}</button>
           <button type="button" class="fb-row__action" @click="openEdit(n)" title="Edit"><i class="fas fa-pen"></i></button>
           <button type="button" class="fb-row__action fb-row__action--danger" @click="remove(n)" title="Delete"><i class="fas fa-trash"></i></button>
         </div>
@@ -79,6 +83,15 @@ export default {
         await this.load();
       } catch (e) {
         console.error('[form-builder] save notification failed', e);
+      }
+    },
+    async toggleActive(n) {
+      const active = Number(n.active) ? 0 : 1;
+      try {
+        await this.api.updateNotification(n.id, { ...n, active });
+        n.active = active;
+      } catch (e) {
+        console.error('[form-builder] toggle notification failed', e);
       }
     },
     async remove(n) {

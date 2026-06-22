@@ -514,11 +514,21 @@ $fb-radius: 6px;
   &__actions { display: flex; align-items: center; gap: 8px; }
 
   &__badge {
+    appearance: none;
+    cursor: pointer;
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: .04em;
+    padding: 3px 10px;
+    border-radius: 999px;
+    border: 1px solid currentColor;
+    background: none;
     color: #1b8a4b;
-    &--off { color: $fb-muted; }
+    &:hover { background: rgba(27, 138, 75, .08); }
+    &--off {
+      color: $fb-muted;
+      &:hover { background: rgba(0, 0, 0, .04); }
+    }
   }
 }
 
