@@ -523,6 +523,7 @@ $fb-radius: 6px;
 }
 
 .fb-field__note--error { color: $fb-red; }
+.fb-field__input--error { border-color: $fb-red !important; }
 
 // ---- simple rich text ----
 .fb-richtext {
@@ -639,4 +640,54 @@ $fb-radius: 6px;
     flex-direction: column;
     gap: 16px;
   }
+}
+
+// ---- save indicator ----
+// Small unintrusive pill (bottom-right) showing saving → saved feedback. Reuses
+// the CMS spinner animation at a smaller size.
+.fb-save {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 9998;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 20px;
+  background: #2b3038;
+  color: #fff;
+  font-size: 13px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+
+  &--saved { background: #1b8a4b; }
+  &--error { background: #e2483d; }
+
+  &__icon { font-size: 12px; }
+
+  // smaller spinner than the full-screen loader
+  &__spinner {
+    width: 14px;
+    height: 14px;
+    display: inline-block;
+
+    &:before {
+      width: 14px;
+      height: 14px;
+      border-width: 2px;
+      border-color: #fff transparent;
+      margin: 0;
+    }
+  }
+}
+
+// fade in/out
+.fb-save-enter-active,
+.fb-save-leave-active {
+  transition: opacity .3s ease, transform .3s ease;
+}
+.fb-save-enter-from,
+.fb-save-leave-to {
+  opacity: 0;
+  transform: translateY(6px);
 }

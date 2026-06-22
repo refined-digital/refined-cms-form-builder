@@ -1,5 +1,7 @@
 <template>
   <div class="fb-editor">
+    <save-indicator :status="saveStatus"></save-indicator>
+
     <nav class="fb-editor__tabs">
       <button
         v-for="t in tabs"
@@ -45,7 +47,7 @@
       :fields="fields"
       :integrations-enabled="integrationsEnabled"
       @save="onFieldSave"
-      @close="modalField = null"
+      @close="onFieldModalClose"
     />
 
     <submit-modal
@@ -60,6 +62,7 @@
 <script>
 import { createApi } from '../lib/api';
 import { confirmDelete } from '../lib/confirmDelete';
+import { saveStatus } from '../lib/saveStatus';
 import EditorCanvas from './editor/EditorCanvas.vue';
 import FieldPalette from './editor/FieldPalette.vue';
 import FieldModal from './editor/FieldModal.vue';
@@ -68,12 +71,18 @@ import BehaviourTab from './editor/BehaviourTab.vue';
 import NotificationsTab from './editor/NotificationsTab.vue';
 import IntegrationsTab from './editor/IntegrationsTab.vue';
 import SettingsTab from './editor/SettingsTab.vue';
+import SaveIndicator from './editor/SaveIndicator.vue';
 
 export default {
   name: 'FormBuilderEditor',
   components: {
     EditorCanvas, FieldPalette, FieldModal, SubmitModal,
-    BehaviourTab, NotificationsTab, IntegrationsTab, SettingsTab,
+    BehaviourTab, NotificationsTab, IntegrationsTab, SettingsTab, SaveIndicator,
+  },
+  computed: {
+    saveStatus() {
+      return saveStatus.value;
+    },
   },
   props: {
     // base url for the form's JSON api, e.g. /refined/form-builder/3/api
@@ -153,7 +162,7 @@ export default {
         options: [],
       };
     },
-    // click-to-add: append, then open the modal
+    // click-to-add: append, then open the modal (as a new field)
     async onAddField(type) {
       try {
         const field = await this.api.createField(this.defaultFieldPayload(type));
@@ -176,6 +185,9 @@ export default {
     },
     openFieldModal(field) {
       this.modalField = field;
+    },
+    onFieldModalClose() {
+      this.modalField = null;
     },
     async onFieldSave(payload) {
       try {

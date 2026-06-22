@@ -2,7 +2,7 @@
   <div class="fb-tab-panel fb-tab-panel--list">
     <header class="fb-list__head">
       <h3 class="fb-list__title">Email Notifications</h3>
-      <button type="button" class="button button--blue" @click="openNew">+ Add notification</button>
+      <button type="button" class="button button--blue button--small" @click="openNew">+ Add notification</button>
     </header>
 
     <p v-if="!notifications.length" class="fb-list__empty">

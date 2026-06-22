@@ -1,5 +1,5 @@
 <template>
-  <div class="fb-modal__overlay" @click.self="$emit('close')">
+  <div class="fb-modal__overlay" @mousedown="onOverlayMouseDown" @click="onOverlayClick">
     <div class="fb-modal">
       <header class="fb-modal__head">
         <h3 class="fb-modal__title">{{ notification.id ? 'Edit' : 'New' }} Notification</h3>
@@ -9,14 +9,16 @@
       <div class="fb-modal__body fb-modal__panel">
         <div class="fb-field">
           <label class="fb-field__label">Name <span class="fb-field__req">*</span></label>
-          <input v-model="model.name" type="text" class="fb-field__input" />
-          <p class="fb-field__note">The internal name of the notification.</p>
+          <input v-model="model.name" type="text" class="fb-field__input" :class="{ 'fb-field__input--error': errors.name }" @input="validateField('name')" @blur="validateField('name')" />
+          <p v-if="errors.name" class="fb-field__note fb-field__note--error">{{ errors.name }}</p>
+          <p v-else class="fb-field__note">The internal name of the notification.</p>
         </div>
 
         <div class="fb-field">
           <label class="fb-field__label">Recipient Emails <span class="fb-field__req">*</span></label>
           <rd-form-email :field="{ name: 'to' }" :value="model.to" v-model="model.to"></rd-form-email>
-          <p class="fb-field__note">Email addresses who will receive this email notification.</p>
+          <p v-if="errors.to" class="fb-field__note fb-field__note--error">{{ errors.to }}</p>
+          <p v-else class="fb-field__note">Email addresses who will receive this email notification.</p>
         </div>
 
         <div class="fb-field">
@@ -42,8 +44,9 @@
 
         <div class="fb-field">
           <label class="fb-field__label">Subject <span class="fb-field__req">*</span></label>
-          <input v-model="model.subject" type="text" class="fb-field__input" />
-          <p class="fb-field__note">Use <code>[Form Name]</code> to insert the form's name.</p>
+          <input v-model="model.subject" type="text" class="fb-field__input" :class="{ 'fb-field__input--error': errors.subject }" @input="validateField('subject')" @blur="validateField('subject')" />
+          <p v-if="errors.subject" class="fb-field__note fb-field__note--error">{{ errors.subject }}</p>
+          <p v-else class="fb-field__note">Use <code>[Form Name]</code> to insert the form's name.</p>
         </div>
 
         <div class="fb-field">
@@ -73,10 +76,11 @@
 <script>
 import { TYPE } from '../../lib/fieldTypes';
 import modalAppClass from '../../lib/modalAppClass';
+import modalOverlay from '../../lib/modalOverlay';
 
 export default {
   name: 'NotificationModal',
-  mixins: [modalAppClass],
+  mixins: [modalAppClass, modalOverlay],
   props: {
     notification: { type: Object, required: true },
     fields: { type: Array, default: () => [] },
@@ -95,7 +99,15 @@ export default {
         subject: this.notification.subject || "A new submission from '[Form Name]'",
         content: this.notification.content || '<p>You have a new [Form Name] submission</p><p>[[fields]]</p>',
       },
+      errors: {},
     };
+  },
+  watch: {
+    // the taggable recipient field updates via v-model; clear/refresh its error
+    // as soon as it has a value (it has no blur event of its own)
+    'model.to'() {
+      if (this.errors.to) this.validateField('to');
+    },
   },
   computed: {
     emailFields() {
@@ -119,7 +131,35 @@ export default {
     },
   },
   methods: {
+    // per-field rule -> error message (or null when valid)
+    fieldError(key) {
+      const v = (this.model[key] || '').toString().trim();
+      switch (key) {
+        case 'name': return v ? null : 'A name is required.';
+        case 'to': return v ? null : 'At least one recipient email is required.';
+        case 'subject': return v ? null : 'A subject is required.';
+        default: return null;
+      }
+    },
+    // live (input/blur) re-check of one field
+    validateField(key) {
+      const err = this.fieldError(key);
+      if (err) {
+        this.errors[key] = err;
+      } else {
+        delete this.errors[key];
+      }
+    },
+    validate() {
+      this.errors = {};
+      ['name', 'to', 'subject'].forEach((key) => {
+        const err = this.fieldError(key);
+        if (err) this.errors[key] = err;
+      });
+      return Object.keys(this.errors).length === 0;
+    },
     save() {
+      if (!this.validate()) return;
       this.$emit('save', { ...this.model });
     },
   },

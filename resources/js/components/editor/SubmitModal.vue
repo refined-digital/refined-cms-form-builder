@@ -1,5 +1,5 @@
 <template>
-  <div class="fb-modal__overlay" @click.self="$emit('close')">
+  <div class="fb-modal__overlay" @mousedown="onOverlayMouseDown" @click="onOverlayClick">
     <div class="fb-modal fb-modal--small">
       <header class="fb-modal__head">
         <h3 class="fb-modal__title">Submit Button</h3>
@@ -22,10 +22,11 @@
 
 <script>
 import modalAppClass from '../../lib/modalAppClass';
+import modalOverlay from '../../lib/modalOverlay';
 
 export default {
   name: 'SubmitModal',
-  mixins: [modalAppClass],
+  mixins: [modalAppClass, modalOverlay],
   props: {
     submitText: { type: String, default: '' },
   },

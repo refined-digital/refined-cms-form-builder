@@ -1,5 +1,5 @@
 <template>
-  <div class="fb-modal__overlay" @click.self="$emit('close')">
+  <div class="fb-modal__overlay" @mousedown="onOverlayMouseDown" @click="onOverlayClick">
     <div class="fb-modal">
       <header class="fb-modal__head">
         <h3 class="fb-modal__title">{{ typeMeta.name }} — Field Settings</h3>
@@ -22,8 +22,9 @@
         <div v-show="tab === 'general'" class="fb-modal__panel">
           <div class="fb-field">
             <label class="fb-field__label">Label <span class="fb-field__req">*</span></label>
-            <input v-model="model.name" type="text" class="fb-field__input" />
-            <p class="fb-field__note">The label that describes the field.</p>
+            <input v-model="model.name" type="text" class="fb-field__input" :class="{ 'fb-field__input--error': errors.name }" @input="validateField('name')" @blur="validateField('name')" />
+            <p v-if="errors.name" class="fb-field__note fb-field__note--error">{{ errors.name }}</p>
+            <p v-else class="fb-field__note">The label that describes the field.</p>
           </div>
 
           <div v-if="supportsPlaceholder" class="fb-field">
@@ -47,8 +48,9 @@
           </div>
 
           <div v-if="isCustom" class="fb-field">
-            <label class="fb-field__label">Custom Field Class</label>
-            <input v-model="model.custom_field_class" type="text" class="fb-field__input" />
+            <label class="fb-field__label">Custom Field Class <span class="fb-field__req">*</span></label>
+            <input v-model="model.custom_field_class" type="text" class="fb-field__input" :class="{ 'fb-field__input--error': errors.custom_field_class }" @input="validateField('custom_field_class')" @blur="validateField('custom_field_class')" />
+            <p v-if="errors.custom_field_class" class="fb-field__note fb-field__note--error">{{ errors.custom_field_class }}</p>
           </div>
 
           <div v-if="isHidden" class="fb-field">
@@ -157,10 +159,11 @@ import Toggle from './controls/Toggle.vue';
 import OptionsBuilder from './controls/OptionsBuilder.vue';
 import ConditionsBuilder from './controls/ConditionsBuilder.vue';
 import modalAppClass from '../../lib/modalAppClass';
+import modalOverlay from '../../lib/modalOverlay';
 
 export default {
   name: 'FieldModal',
-  mixins: [modalAppClass],
+  mixins: [modalAppClass, modalOverlay],
   components: { Toggle, OptionsBuilder, ConditionsBuilder },
   props: {
     field: { type: Object, required: true },
@@ -176,6 +179,7 @@ export default {
       labelPositionOptions: LABEL_POSITION_OPTIONS,
       model: this.normalise(this.field),
       labelPosition: columnsToLabelPosition(this.field),
+      errors: {},
     };
   },
   computed: {
@@ -248,7 +252,35 @@ export default {
         this.model.settings = {};
       }
     },
+    fieldError(key) {
+      const v = (this.model[key] || '').toString().trim();
+      switch (key) {
+        case 'name': return v ? null : 'A label is required.';
+        case 'custom_field_class': return (this.isCustom && !v) ? 'A custom field class is required.' : null;
+        default: return null;
+      }
+    },
+    validateField(key) {
+      const err = this.fieldError(key);
+      if (err) {
+        this.errors[key] = err;
+      } else {
+        delete this.errors[key];
+      }
+    },
+    validate() {
+      this.errors = {};
+      ['name', 'custom_field_class'].forEach((key) => {
+        const err = this.fieldError(key);
+        if (err) this.errors[key] = err;
+      });
+      return Object.keys(this.errors).length === 0;
+    },
     save() {
+      if (!this.validate()) {
+        this.tab = 'general';
+        return;
+      }
       const cols = labelPositionToColumns(this.labelPosition);
       const payload = {
         ...this.model,
