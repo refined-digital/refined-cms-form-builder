@@ -101,6 +101,7 @@ export default {
     };
   },
   async created() {
+    this.watchCoreModals();
     try {
       const [types, fields, integrations] = await Promise.all([
         this.api.fieldTypes(),
@@ -117,6 +118,24 @@ export default {
     }
   },
   methods: {
+    // The core link/sitemap pickers (rd-link) open inside .app__right, which
+    // sits below the sidebar in the stacking order. Their own app--has-link /
+    // app--has-sitemap flags don't reliably lift the content layer here, so we
+    // mirror their open state onto the proven app--has-modal flag.
+    watchCoreModals() {
+      const ui = window.RefinedCMS && window.RefinedCMS.ui;
+      const { watch } = window.RefinedCMS.Vue;
+      if (!ui || !watch) return;
+
+      const appEl = document.getElementById('app');
+      watch(
+        () => !!(ui.link?.active || ui.sitemap?.showModal || ui.media?.showModal),
+        (open) => {
+          if (!appEl) return;
+          appEl.classList.toggle('app--has-modal', open);
+        },
+      );
+    },
     typeMeta(id) {
       return this.fieldTypes.find((t) => t.id === Number(id));
     },

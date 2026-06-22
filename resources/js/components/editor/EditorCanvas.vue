@@ -1,9 +1,5 @@
 <template>
   <div class="fb-canvas">
-    <header class="fb-canvas__head">
-      <span class="fb-canvas__page">PAGE 1</span>
-    </header>
-
     <div v-if="loading" class="fb-canvas__loading">Loading…</div>
 
     <template v-else>

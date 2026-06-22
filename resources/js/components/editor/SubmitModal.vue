@@ -13,8 +13,8 @@
         </div>
       </div>
       <footer class="fb-modal__foot">
-        <button type="button" class="button button--grey" @click="$emit('close')">Cancel</button>
-        <button type="button" class="button button--blue" @click="$emit('save', text)">Save</button>
+        <button type="button" class="button button--red button--small" @click="$emit('close')">Cancel</button>
+        <button type="button" class="button button--blue button--small" @click="$emit('save', text)">Save</button>
       </footer>
     </div>
   </div>

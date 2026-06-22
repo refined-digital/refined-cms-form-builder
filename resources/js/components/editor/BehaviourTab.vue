@@ -11,13 +11,23 @@
 
     <div v-if="action === 'message'" class="fb-field">
       <label class="fb-field__label">Confirmation Message</label>
-      <textarea v-model="confirmation" class="fb-field__input" rows="4" @blur="save"></textarea>
+      <rd-rich-text
+        id="fb-confirmation"
+        v-model="confirmation"
+        :content="confirmation"
+        @blur="save"
+      ></rd-rich-text>
       <p class="fb-field__note">Shown on screen after a successful submission.</p>
     </div>
 
-    <div v-if="action === 'redirect_page'" class="fb-field">
+    <div v-if="action === 'redirect_page'" class="fb-field form">
       <label class="fb-field__label">Redirect to page</label>
-      <rd-link v-model="redirectPage" :settings="{ simple: true }"></rd-link>
+      <rd-link
+        name="redirect_page"
+        :value="redirectPageValue"
+        :settings="{ simple: true }"
+        @update:modelValue="onRedirectPage"
+      ></rd-link>
       <p class="fb-field__note">Choose a page to send the visitor to after submitting.</p>
     </div>
 
@@ -49,20 +59,18 @@ export default {
       action: this.form.submit_action || 'message',
       confirmation: this.form.confirmation || '',
       redirectUrl: this.form.redirect_url || '',
-      redirectPage: this.parseLink(this.form.redirect_page),
+      // raw stored value for rd-link's :value (JSON string or '' — never a bare
+      // object, which would lack the `file` key rd-link expects and crash it)
+      redirectPageValue: this.form.redirect_page || '',
+      // the chosen link object, captured from rd-link's emit
+      redirectPage: null,
       urlError: '',
     };
   },
-  watch: {
-    redirectPage: {
-      deep: true,
-      handler() { this.save(); },
-    },
-  },
   methods: {
-    parseLink(val) {
-      if (!val) return {};
-      try { return typeof val === 'string' ? JSON.parse(val) : val; } catch (e) { return {}; }
+    onRedirectPage(link) {
+      this.redirectPage = link;
+      this.save();
     },
     save() {
       this.urlError = '';
@@ -74,7 +82,7 @@ export default {
         submit_action: this.action,
         confirmation: this.confirmation,
         redirect_url: this.redirectUrl,
-        redirect_page: this.redirectPage ? JSON.stringify(this.redirectPage) : null,
+        redirect_page: this.redirectPage ? JSON.stringify(this.redirectPage) : this.redirectPageValue || null,
       });
     },
   },

@@ -69,15 +69,6 @@ $fb-radius: 6px;
   border-radius: $fb-radius;
   padding: 20px 24px;
 
-  &__head { margin-bottom: 16px; }
-
-  &__page {
-    font-size: 11px;
-    letter-spacing: .08em;
-    color: $fb-muted;
-    font-weight: 600;
-  }
-
   &__loading, &__empty {
     padding: 40px;
     text-align: center;
@@ -465,19 +456,8 @@ $fb-radius: 6px;
 }
 
 // ---- generic buttons (fall back if core classes unavailable) ----
-.fb-editor .button {
-  appearance: none;
-  border: 1px solid $fb-border-strong;
-  background: #fff;
-  border-radius: $fb-radius;
-  padding: 9px 16px;
-  font-size: 14px;
-  cursor: pointer;
-
-  &--blue { background: $fb-blue; border-color: $fb-blue; color: #fff; }
-  &--grey { background: $fb-bg; color: $fb-text; }
-  &--red { background: $fb-red; border-color: $fb-red; color: #fff; }
-}
+// (Buttons use the CMS's core .button system — button--blue/red/green/grey/small.
+// No editor-specific override, so they stay uniform with the rest of the CMS.)
 
 // ---- tab panels ----
 .fb-tab-panel {
@@ -605,15 +585,8 @@ $fb-radius: 6px;
   }
 }
 
-.fb-token {
-  display: inline-block;
-  background: #e7f0ff;
-  color: $fb-blue;
-  border-radius: 4px;
-  padding: 1px 6px;
-  font-size: 12px;
-  margin: 0 1px;
-}
+// .fb-token chips are styled in core's _rich-editor.scss (the rich editor owns
+// the FieldToken node now).
 
 // ---- integrations ----
 .fb-integration {
