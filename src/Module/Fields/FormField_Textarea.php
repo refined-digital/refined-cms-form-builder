@@ -4,6 +4,11 @@ namespace RefinedDigital\FormBuilder\Module\Fields;
 
 class FormField_Textarea extends FormField {
 
+    public function wantsGibberish(): bool
+    {
+        return true;
+    }
+
     public function render()
     {
         return <<<'blade'

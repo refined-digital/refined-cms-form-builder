@@ -4,6 +4,13 @@ namespace RefinedDigital\FormBuilder\Module\Fields;
 
 class FormField_Hidden extends FormField {
 
+    public function htmlAttributes(): array
+    {
+        $args = parent::htmlAttributes();
+        unset($args['class'], $args['required']);
+        return $args;
+    }
+
     public function render()
     {
         return <<<'blade'

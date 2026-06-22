@@ -294,12 +294,19 @@ class FormsRepository
       return $fields;
     }
 
+    /**
+     * Resolve the FormField_* class NAME for a field, or false if none.
+     * Custom (type 20) fields resolve to a host-app class; everything else
+     * comes from the id->class registry (config('form-builder.field_classes')),
+     * falling back to the legacy name-derivation if the config is unpublished.
+     */
     public function getFieldClass($field)
     {
         if ($field->custom_field_class) {
             $class = $this->getCustomFieldClassName($field->custom_field_class);
         } else {
-            $class = $this->getFieldClassName($field->type->name);
+            $map = config('form-builder.field_classes', []);
+            $class = $map[$field->form_field_type_id] ?? $this->getFieldClassName($field->type->name);
         }
 
         if (class_exists($class)) {
@@ -307,6 +314,22 @@ class FormsRepository
         }
 
         return false;
+    }
+
+    /**
+     * Resolve and instantiate a field's class. Single entry point used by both
+     * rendering and validation so neither needs a field-type switch. Returns
+     * null when no class resolves (e.g. a custom field whose host class is
+     * missing).
+     */
+    public function getFieldClassInstance($field, $defaultFields = [], $selectFieldsOverride = [])
+    {
+        $class = $this->getFieldClass($field);
+        if (!$class) {
+            return null;
+        }
+
+        return new $class($field, $defaultFields, $selectFieldsOverride);
     }
 
     public function getFieldClassByName($customClassName)

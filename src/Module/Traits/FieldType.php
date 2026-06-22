@@ -87,108 +87,51 @@ trait FieldType
 
     public function getAttributesAttribute()
     {
-        $args = [
-            'class'     => 'form__control',
-            'id'        => 'form__field--'.$this->id,
-            'required'  => 'required'
-        ];
-
-        if ($this->placeholder) {
-            $args['placeholder'] = $this->placeholder;
+        // delegate per-type HTML attributes to the field's class (htmlAttributes()),
+        // so there's no field-type switch here. custom fields with no host class
+        // fall back to the base attribute set.
+        $instance = forms()->getFieldClassInstance($this);
+        if ($instance) {
+            return $instance->htmlAttributes();
         }
 
-        if (!$this->autocomplete) {
-            $args['autocomplete'] = uniqid(); // chrome ignores off, so set it to a random string
-        }
-
-        // visibility: visible (default) | hidden | disabled | readonly
-        $visibility = $this->attributes['visibility'] ?? 'visible';
-        if ($visibility === 'disabled') {
-            $args['disabled'] = 'disabled';
-        } elseif ($visibility === 'readonly') {
-            $args['readonly'] = 'readonly';
-        }
-
-        switch ($this->form_field_type_id) {
-            case 4:
-                $args['class'] .= ' form__control--radio';
-                break;
-            case 5:
-            case 6:
-                $args['class'] .= ' form__control--checkbox';
-                break;
-            case 7:
-                $args['inputmode'] = 'decimal';
-                break;
-            case 12:
-                unset($args['class']);
-                unset($args['required']);
-                break;
-            case 15:
-                $args['class'] .= ' form__control--date-picker';
-                break;
-            case 17:
-                $fileTypes = $this->getFileFieldTypes($this->settings);
-                if ($fileTypes) {
-                    $args['accept'] = $fileTypes;
-                }
-            case 18:
-                $args['class'] .= ' form__control--multiple-files';
-                $args['multiple'] = 'multiple';
-                break;
-        }
-
-        return $args;
+        return (new \RefinedDigital\FormBuilder\Module\Fields\FormField($this))->htmlAttributes();
     }
 
-    private function getFileFieldTypes($settings)
+    public function getIsStructuralAttribute()
     {
-        $images = 'image/*';
-        $files = 'application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.zip,.7zip';
-
-        if (isset($settings->file_types)) {
-            if ($settings->file_types == 'image') {
-                return $images;
-            }
-
-            if ($settings->file_types == 'document') {
-                return $files;
-            }
-
-            if ($settings->file_types == 'image_document') {
-                return $images.','.$files;
-            }
-        }
-
-        return $images.','.$files;
+        $instance = forms()->getFieldClassInstance($this);
+        return $instance ? $instance->isStructural() : false;
     }
 
     public function getViewAttribute()
     {
-        $name = $this->type->name;
-        if ($this->form_field_type_id == 11) {
-            $name = 'password';
-        }
-
+        // the registry resolves the class for every built-in type (incl. 11),
+        // so there's no per-type special-casing here.
         $class = forms()->getFieldClass($this);
         if ($class) {
-            $view = $class;
-        } else {
-            $view = 'formBuilder::front-end.fields.'.Str::slug($name);
+            return $class;
+        }
 
-            // custom field (type 20): resolve the host app's class only when it
-            // actually exists, otherwise fall back to the default view so a
-            // missing/blank custom class never blows up rendering or the API.
-            if ($this->form_field_type_id == 20 && $this->custom_field_class) {
-                $customClass = forms()->getFieldClassByName($this->custom_field_class);
-                if (is_string($customClass) && class_exists($customClass)) {
-                    $view = (new $customClass($this))->getView();
-                }
+        // no class resolved — fall back to a blade view by type name. for a
+        // custom field (type 20) prefer the host class's own view when present,
+        // otherwise never blow up rendering/the API.
+        $view = 'formBuilder::front-end.fields.'.Str::slug($this->type->name);
+
+        if ($this->form_field_type_id == 20 && $this->custom_field_class) {
+            $customClass = forms()->getFieldClassByName($this->custom_field_class);
+            if (is_string($customClass) && class_exists($customClass)) {
+                $view = (new $customClass($this))->getView();
             }
         }
 
-        return $view;
+        // a custom field with no (resolvable) class would point at a view that
+        // doesn't exist and fatal the whole form. render nothing instead.
+        if (!view()->exists($view) && !class_exists($view)) {
+            return \RefinedDigital\FormBuilder\Module\Fields\FormField::class;
+        }
 
+        return $view;
     }
 
     public function getFieldNameAttribute()

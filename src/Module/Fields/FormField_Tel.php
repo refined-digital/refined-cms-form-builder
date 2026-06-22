@@ -4,15 +4,9 @@ namespace RefinedDigital\FormBuilder\Module\Fields;
 
 class FormField_Tel extends FormField {
 
-    public function render()
+    protected function inputType(): ?string
     {
-        return <<<'blade'
-{!!
-    html()
-        ->input('tel', $field->field_name, $value)
-        ->attributes($field->attributes)        
-!!}    
-blade;
+        return 'tel';
     }
 
 }

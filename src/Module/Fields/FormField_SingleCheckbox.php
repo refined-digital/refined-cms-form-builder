@@ -4,6 +4,13 @@ namespace RefinedDigital\FormBuilder\Module\Fields;
 
 class FormField_SingleCheckbox extends FormField {
 
+    public function htmlAttributes(): array
+    {
+        $args = parent::htmlAttributes();
+        $args['class'] .= ' form__control--checkbox';
+        return $args;
+    }
+
     public function render()
     {
         return <<<'blade'

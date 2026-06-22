@@ -4,15 +4,16 @@ namespace RefinedDigital\FormBuilder\Module\Fields;
 
 class FormField_Date extends FormField {
 
-    public function render()
+    public function htmlAttributes(): array
     {
-        return <<<'blade'
-{!!
-    html()
-        ->input('date', $field->field_name, $value)
-        ->attributes($field->attributes)        
-!!}    
-blade;
+        $args = parent::htmlAttributes();
+        $args['class'] .= ' form__control--date-picker';
+        return $args;
+    }
+
+    protected function inputType(): ?string
+    {
+        return 'date';
     }
 
 }

@@ -6,6 +6,10 @@
     "refineddigital/cms": "^1.18|dev-master",
     "msurguy/honeypot": "^1.5"
   },
+  "require-dev": {
+    "phpunit/phpunit": "^10.5|^11.0|^12.0",
+    "orchestra/testbench": "^8.0|^9.0|^10.0"
+  },
   "repositories": [
     {
       "type": "vcs",
@@ -26,6 +30,11 @@
     "files": [
         "src/Module/Helpers/helpers.php"
     ]
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "RefinedDigital\\FormBuilder\\Tests\\": "tests/"
+    }
   },
   "extra": {
     "laravel": {

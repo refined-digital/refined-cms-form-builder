@@ -29,128 +29,115 @@ class FormSubmitRequest extends FormRequest
      */
     public function rules()
     {
-        $args = null;
         $form = $this->route('form');
         $skip = config('form-builder.skip_validation');
 
-        if (isset($form->fields) && $form->fields && $form->fields->count()) {
-            $args = [];
-            $data = $this->all();
-            foreach ($form->fields as $field) {
-                if ($field->required) {
-                    // skip fields that don't require validate, but may be marked as such
-                    if (in_array($field->form_field_type_id, $skip)) {
-                        continue;
+        if (!isset($form->fields) || !$form->fields || !$form->fields->count()) {
+            return null;
+        }
+
+        $args = [];
+        $data = $this->all();
+
+        foreach ($form->fields as $field) {
+            // skip non-validated types (static/hidden) and conditionally-hidden fields
+            if (in_array($field->form_field_type_id, $skip)) {
+                continue;
+            }
+            if (ConditionEvaluator::isHidden($field, $data)) {
+                continue;
+            }
+
+            // each field's class owns its rules/messages — no field-type switch here
+            $instance = forms()->getFieldClassInstance($field);
+            $name = $field->field_name;
+
+            if ($field->required) {
+                $rules = ['required'];
+                $this->customMessages[$name.'.required'] = 'The '.$field->name.' field is required.';
+
+                if ($instance) {
+                    $rules = array_merge($rules, $instance->rules(), $this->customFieldRules($field, $instance));
+                    foreach ($instance->messages() as $rule => $message) {
+                        $key = $instance->isArrayField() ? $name.'.*.'.$rule : $name.'.'.$rule;
+                        $this->customMessages[$key] = $message;
                     }
-
-                    // skip fields hidden by their conditional logic (Phase 4)
-                    if (ConditionEvaluator::isHidden($field, $data)) {
-                        continue;
+                    foreach ($instance->extraRules() as $extraName => $spec) {
+                        $args[$extraName] = $spec['rules'];
+                        $this->customMessages += $spec['messages'];
                     }
-                    $required = ['required'];
-                    $this->customMessages[$field->field_name.'.required'] = 'The '.$field->name.' field is required.';
-
-                    switch ($field->form_field_type_id) {
-                        case 8:
-                            $required[] = 'email';
-                            $this->customMessages[$field->field_name.'.email'] = 'The '.$field->name.' must be a valid email address.';
-                            break;
-                        case 10:
-                            $required[] = 'min:5';
-                            $this->customMessages[$field->field_name.'.min'] = 'The '.$field->name.' must be at least :min characters';
-                            break;
-                        case 11:
-                            $required[] = 'confirmed';
-                            $required[] = 'min:5';
-                            $this->customMessages[$field->field_name.'.confirmed'] = 'The '.$field->name.' fields does not match.';
-                            $this->customMessages[$field->field_name.'.min'] = 'The '.$field->name.' must be at least :min characters';
-
-                            $args[$field->field_name.'_confirmation'] = ['required','min:5'];
-                            $this->customMessages[$field->field_name.'_confirmation.required'] = 'The Confirm '.$field->name.' field is required.';
-                            $this->customMessages[$field->field_name.'_confirmation.min'] = 'The Confirm '.$field->name.' must be at least :min characters.';
-                            break;
-                        case 14:
-                            $required[] = ['not0'];
-                            $this->customMessages[$field->field_name.'.not0'] = 'The '.$field->name.' field is required.';
-                            break;
-                        case 17:
-                            $required[] = 'mimes:'.config('form-builder.accepted_mime_types');
-                            $this->customMessages[$field->field_name.'.mimes'] = 'The '.$field->name.' is an invalid file type.';
-                            break;
-                        case 18:
-                            $required[] = 'mimes:'.config('form-builder.accepted_mime_types');
-                            $this->customMessages[$field->field_name.'.*.mimes'] = 'The '.$field->name.' is an invalid file type.';
-                            if(isset($this->customMessages[$field->field_name.'.*.required'])) {
-                                unset($this->customMessages[$field->field_name.'.*.required']);
-                                $this->customMessages[$field->field_name.'.*.required'] = 'The '.$field->name.' is required.';
-                            }
-                            break;
-                    }
-
-                    if ($field->form_field_type_id == 20 && $field->custom_field_class) {
-                        $model = forms()->getFieldClass($field);
-                        $validationRules = $model->getValidationRules();
-                        if (isset($validationRules->required) && sizeof($validationRules->required)) {
-                            foreach ($validationRules->required as $rule) {
-                                $required[] = $rule;
-                            }
-                        }
-
-                        if (isset($validationRules->messages) && sizeof($validationRules->messages)) {
-                            foreach ($validationRules->messages as $rule => $message) {
-                                $this->customMessages[$field->field_name.'.'.$rule] = $message;
-                            }
-                        }
-                    }
-
-                    // add the required states to the args
-                    if ($field->form_field_type_id == 18) {
-                        $args[$field->field_name] = 'required';
-                        $args[$field->field_name.'.*'] = $required;
-                        $this->customMessages[$field->field_name.'.required'] = 'The '.$field->name.' is required.';
-                    } else {
-                        $args[$field->field_name] = $required;
-                    }
-
-                    // a field-level custom error message overrides every generated
-                    // message for that field (required/email/min/etc.)
-                    if (!empty($field->error_message)) {
-                        foreach (array_keys($this->customMessages) as $key) {
-                            if (str_starts_with($key, $field->field_name.'.')) {
-                                $this->customMessages[$key] = $field->error_message;
-                            }
-                        }
-                    }
-
                 }
 
-                // gibberish anti-spam on Text (1) and Textarea (2), unless the
-                // field opts out via settings.gibberish_check === false, and unless
-                // the field is conditionally hidden
-                if (in_array($field->form_field_type_id, [1, 2])
-                    && (!isset($field->settings->gibberish_check) || $field->settings->gibberish_check !== false)
-                    && !ConditionEvaluator::isHidden($field, $data ?? $this->all())) {
-                    $args[$field->field_name] = array_merge(
-                        (array) ($args[$field->field_name] ?? []),
-                        [new Gibberish($field->name)]
-                    );
+                // array fields (Multiple Files) validate per-item under name.*
+                if ($instance && $instance->isArrayField()) {
+                    $args[$name] = 'required';
+                    $args[$name.'.*'] = $rules;
+                    $this->customMessages[$name.'.required'] = 'The '.$field->name.' is required.';
+                } else {
+                    $args[$name] = $rules;
+                }
+
+                // a field-level custom error message overrides every generated
+                // message for that field (required/email/min/etc.)
+                if (!empty($field->error_message)) {
+                    foreach (array_keys($this->customMessages) as $key) {
+                        if (str_starts_with($key, $name.'.')) {
+                            $this->customMessages[$key] = $field->error_message;
+                        }
+                    }
                 }
             }
 
-            // add in the honeypot
-            $args['hname']  = 'honeypot';
-            $args['htime']  = 'required|honeytime:5';
-
-            // invisible reCAPTCHA v3 (score-based)
-            if($form->recaptcha) {
-                $args['_captcha']  = ['required', new ReCaptcha('submit')];
-                $this->customMessages['_captcha.required']  = 'Robot Detected';
+            // gibberish anti-spam — the field class declares whether it applies
+            // (Text/Textarea), still honouring the per-field settings opt-out
+            if ($instance && $instance->wantsGibberish()
+                && (!isset($field->settings->gibberish_check) || $field->settings->gibberish_check !== false)) {
+                $args[$name] = array_merge(
+                    (array) ($args[$name] ?? []),
+                    [new Gibberish($field->name)]
+                );
             }
         }
 
+        // form-level rules (no field): honeypot + invisible reCAPTCHA v3
+        $args['hname'] = 'honeypot';
+        $args['htime'] = 'required|honeytime:5';
 
-        // return the results to set for validation
+        if ($form->recaptcha) {
+            $args['_captcha'] = ['required', new ReCaptcha('submit')];
+            $this->customMessages['_captcha.required'] = 'Robot Detected';
+        }
+
         return $args;
+    }
+
+    /**
+     * Back-compat shim for custom (type 20) host classes that still expose the
+     * old getValidationRules() contract instead of rules()/messages(). Pulls
+     * their rules and registers their messages. Built-in classes return [].
+     */
+    protected function customFieldRules($field, $instance): array
+    {
+        if ($field->form_field_type_id != 20 || !method_exists($instance, 'getValidationRules')) {
+            return [];
+        }
+
+        $validationRules = $instance->getValidationRules();
+        $rules = [];
+
+        if (isset($validationRules->required) && sizeof($validationRules->required)) {
+            foreach ($validationRules->required as $rule) {
+                $rules[] = $rule;
+            }
+        }
+
+        if (isset($validationRules->messages) && sizeof($validationRules->messages)) {
+            foreach ($validationRules->messages as $rule => $message) {
+                $this->customMessages[$field->field_name.'.'.$rule] = $message;
+            }
+        }
+
+        return $rules;
     }
 
 
