@@ -170,13 +170,20 @@ $fb-radius: 6px;
     background: #fff;
     color: $fb-muted;
     font-size: 13px;
+    // previews are non-interactive: let clicks fall through to the row so the
+    // whole field (input included) opens the modal
+    pointer-events: none;
   }
 
   // no manual resize on the canvas textarea preview — it's only a preview
   textarea#{&}__preview { resize: none; }
 
   &__options { display: flex; flex-direction: column; gap: 4px; }
-  &__option { font-size: 13px; color: $fb-text; }
+  &__option {
+    font-size: 13px;
+    color: $fb-text;
+    pointer-events: none;
+  }
 
   &__structural {
     font-size: 12px;
@@ -275,13 +282,16 @@ $fb-radius: 6px;
     inset: 0;
     background: rgba(20, 24, 30, .45);
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: center;
-    padding: 60px 20px;
+    padding: 40px 20px;
     z-index: 9999;
     overflow-y: auto;
   }
 
+  // margin:auto keeps it centred but lets a too-tall modal scroll inside the
+  // overlay instead of clipping at the top
+  margin: auto;
   background: #fff;
   border-radius: 8px;
   width: 100%;

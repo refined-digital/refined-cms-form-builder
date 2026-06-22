@@ -59,6 +59,7 @@
 
 <script>
 import { createApi } from '../lib/api';
+import { confirmDelete } from '../lib/confirmDelete';
 import EditorCanvas from './editor/EditorCanvas.vue';
 import FieldPalette from './editor/FieldPalette.vue';
 import FieldModal from './editor/FieldModal.vue';
@@ -187,7 +188,7 @@ export default {
       }
     },
     async onDeleteField(field) {
-      if (!window.confirm('Delete this field?')) return;
+      if (!(await confirmDelete('Delete this field?'))) return;
       try {
         await this.api.deleteField(field.id);
         this.fields = this.fields.filter((f) => f.id !== field.id);

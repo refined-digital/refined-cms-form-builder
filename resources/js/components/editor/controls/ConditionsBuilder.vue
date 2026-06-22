@@ -41,7 +41,7 @@
         <button type="button" class="fb-options__remove" @click="removeRule(i)">&times;</button>
       </div>
 
-      <button type="button" class="button button--grey" @click="addRule">+ Add condition</button>
+      <button type="button" class="button button--grey button--small" @click="addRule">+ Add condition</button>
     </template>
   </div>
 </template>

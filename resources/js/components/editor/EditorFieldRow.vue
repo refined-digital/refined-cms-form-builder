@@ -14,10 +14,11 @@
       <component :is="previewTag" v-bind="previewAttrs" class="fb-row__preview" v-if="hasPreview">
         <template v-if="previewTag === 'select'">
           <option>{{ field.placeholder || 'Select…' }}</option>
+          <option v-for="(opt, i) in previewOptions" :key="i">{{ opt }}</option>
         </template>
       </component>
 
-      <div v-else-if="isOptionField" class="fb-row__options">
+      <div v-else-if="isChoiceList" class="fb-row__options">
         <label v-for="(opt, i) in previewOptions" :key="i" class="fb-row__option">
           <input :type="optionInputType" disabled /> {{ opt }}
         </label>
@@ -42,9 +43,7 @@
 </template>
 
 <script>
-import {
-  TYPE, TYPES_WITH_OPTIONS, STRUCTURAL_TYPES,
-} from '../../lib/fieldTypes';
+import { TYPE, STRUCTURAL_TYPES } from '../../lib/fieldTypes';
 
 export default {
   name: 'EditorFieldRow',
@@ -60,8 +59,9 @@ export default {
     showLabel() {
       return Number(this.field.show_label) !== 0 && this.typeId !== TYPE.HIDDEN;
     },
-    isOptionField() {
-      return TYPES_WITH_OPTIONS.includes(this.typeId);
+    // radio / checkbox render as a list of choices; select renders as a dropdown
+    isChoiceList() {
+      return this.typeId === TYPE.RADIO || this.typeId === TYPE.CHECKBOX;
     },
     isStructural() {
       return STRUCTURAL_TYPES.includes(this.typeId);
@@ -76,7 +76,7 @@ export default {
       return ['Option one', 'Option two'];
     },
     hasPreview() {
-      return !this.isOptionField && !this.isStructural;
+      return !this.isChoiceList && !this.isStructural;
     },
     previewTag() {
       if (this.typeId === TYPE.TEXTAREA) return 'textarea';

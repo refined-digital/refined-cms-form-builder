@@ -37,6 +37,7 @@
 
 <script>
 import { createApi } from '../../lib/api';
+import { confirmDelete } from '../../lib/confirmDelete';
 import NotificationModal from './NotificationModal.vue';
 
 export default {
@@ -81,7 +82,7 @@ export default {
       }
     },
     async remove(n) {
-      if (!window.confirm('Delete this notification?')) return;
+      if (!(await confirmDelete('Delete this notification?'))) return;
       try {
         await this.api.deleteNotification(n.id);
         await this.load();

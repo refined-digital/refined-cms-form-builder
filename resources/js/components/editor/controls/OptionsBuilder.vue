@@ -17,7 +17,7 @@
       />
       <button type="button" class="fb-options__remove" @click="remove(i)">&times;</button>
     </div>
-    <button type="button" class="button button--grey fb-options__add" @click="add">+ Add option</button>
+    <button type="button" class="button button--grey button--small fb-options__add" @click="add">+ Add option</button>
   </div>
 </template>
 
