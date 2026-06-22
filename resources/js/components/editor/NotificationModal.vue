@@ -61,9 +61,11 @@
 <script>
 import SimpleRichText from './controls/SimpleRichText.vue';
 import { TYPE } from '../../lib/fieldTypes';
+import modalAppClass from '../../lib/modalAppClass';
 
 export default {
   name: 'NotificationModal',
+  mixins: [modalAppClass],
   components: { SimpleRichText },
   props: {
     notification: { type: Object, required: true },

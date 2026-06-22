@@ -156,9 +156,11 @@ import {
 import Toggle from './controls/Toggle.vue';
 import OptionsBuilder from './controls/OptionsBuilder.vue';
 import ConditionsBuilder from './controls/ConditionsBuilder.vue';
+import modalAppClass from '../../lib/modalAppClass';
 
 export default {
   name: 'FieldModal',
+  mixins: [modalAppClass],
   components: { Toggle, OptionsBuilder, ConditionsBuilder },
   props: {
     field: { type: Object, required: true },

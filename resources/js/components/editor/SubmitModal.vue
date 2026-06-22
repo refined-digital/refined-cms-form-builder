@@ -21,8 +21,11 @@
 </template>
 
 <script>
+import modalAppClass from '../../lib/modalAppClass';
+
 export default {
   name: 'SubmitModal',
+  mixins: [modalAppClass],
   props: {
     submitText: { type: String, default: '' },
   },

@@ -2,25 +2,35 @@
   <aside class="fb-palette">
     <section v-for="group in groups" :key="group.name" class="fb-palette__group">
       <h4 class="fb-palette__heading">{{ group.label }}</h4>
-      <div class="fb-palette__grid">
-        <button
-          v-for="type in group.types"
-          :key="type.id"
-          type="button"
-          class="fb-palette__item"
-          @click="$emit('add', type)"
-        >
-          <i :class="['fas', type.icon]"></i>
-          <span>{{ type.name }}</span>
-        </button>
-      </div>
+      <draggable
+        :model-value="group.types"
+        :group="{ name: 'fb-fields', pull: 'clone', put: false }"
+        :sort="false"
+        :clone="cloneType"
+        item-key="id"
+        class="fb-palette__grid"
+      >
+        <template #item="{ element }">
+          <button
+            type="button"
+            class="fb-palette__item"
+            @click="$emit('add', element)"
+          >
+            <i :class="['fas', element.icon]"></i>
+            <span>{{ element.name }}</span>
+          </button>
+        </template>
+      </draggable>
     </section>
   </aside>
 </template>
 
 <script>
+import draggable from 'vuedraggable';
+
 export default {
   name: 'FieldPalette',
+  components: { draggable },
   props: {
     fieldTypes: { type: Array, default: () => [] },
   },
@@ -38,6 +48,13 @@ export default {
           types: this.fieldTypes.filter((t) => t.group === g.name),
         }))
         .filter((g) => g.types.length);
+    },
+  },
+  methods: {
+    // what gets dropped into the canvas: a marker carrying the palette type so
+    // the canvas can tell a new field from an existing one.
+    cloneType(type) {
+      return { __paletteType: type };
     },
   },
 };

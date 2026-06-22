@@ -86,6 +86,13 @@ $fb-radius: 6px;
 
   &__list { display: flex; flex-direction: column; gap: 4px; }
 
+  // give an empty canvas a clear drop target for the first dragged field
+  &__list--empty {
+    min-height: 90px;
+    border: 2px dashed $fb-border-strong;
+    border-radius: $fb-radius;
+  }
+
   &__submit {
     margin-top: 20px;
     padding-top: 16px;
@@ -174,6 +181,9 @@ $fb-radius: 6px;
     font-size: 13px;
   }
 
+  // no manual resize on the canvas textarea preview — it's only a preview
+  textarea#{&}__preview { resize: none; }
+
   &__options { display: flex; flex-direction: column; gap: 4px; }
   &__option { font-size: 13px; color: $fb-text; }
 
@@ -183,13 +193,25 @@ $fb-radius: 6px;
     font-style: italic;
   }
 
+  // overlay the actions on top of the row (top-right) instead of sitting beside
+  // the body — keeps every field's body full width regardless of the type label.
   &__actions {
+    position: absolute;
+    top: 8px;
+    right: 8px;
     display: flex;
     align-items: center;
     gap: 6px;
+    padding: 4px 6px;
+    border-radius: $fb-radius;
+    background: #fff;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.12);
     opacity: 0;
+    pointer-events: none;
     transition: opacity .12s;
   }
+
+  &:hover .fb-row__actions { pointer-events: auto; }
 
   &__type {
     font-size: 11px;
@@ -235,8 +257,9 @@ $fb-radius: 6px;
     border: 1px solid $fb-border;
     background: #fff;
     border-radius: $fb-radius;
-    padding: 10px 12px;
+    padding: 8px 10px;
     font-size: 13px;
+    line-height: 1.2;
     color: $fb-text;
     cursor: pointer;
     display: flex;
@@ -244,7 +267,7 @@ $fb-radius: 6px;
     gap: 8px;
     text-align: left;
 
-    i { color: $fb-muted; width: 16px; text-align: center; }
+    i { color: $fb-muted; width: 16px; text-align: center; flex: 0 0 16px; }
 
     &:hover {
       border-color: $fb-blue;

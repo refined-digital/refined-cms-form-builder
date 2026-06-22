@@ -23,6 +23,7 @@
           @edit-field="openFieldModal"
           @edit-submit="submitModalOpen = true"
           @delete-field="onDeleteField"
+          @add-field-at="onAddFieldAt"
         />
         <field-palette
           :field-types="fieldTypes"
@@ -119,8 +120,8 @@ export default {
     typeMeta(id) {
       return this.fieldTypes.find((t) => t.id === Number(id));
     },
-    async onAddField(type) {
-      const payload = {
+    defaultFieldPayload(type) {
+      return {
         form_field_type_id: type.id,
         name: type.name,
         required: 0,
@@ -131,12 +132,26 @@ export default {
         visibility: 'visible',
         options: [],
       };
+    },
+    // click-to-add: append, then open the modal
+    async onAddField(type) {
       try {
-        const field = await this.api.createField(payload);
+        const field = await this.api.createField(this.defaultFieldPayload(type));
         this.fields.push(field);
         this.openFieldModal(field);
       } catch (e) {
         console.error('[form-builder] create field failed', e);
+      }
+    },
+    // drag-to-add: create, insert at the dropped index, persist the new order
+    async onAddFieldAt({ type, index }) {
+      try {
+        const field = await this.api.createField(this.defaultFieldPayload(type));
+        this.fields.splice(index, 0, field);
+        await this.api.reorder(this.fields.map((f) => f.id));
+        this.openFieldModal(field);
+      } catch (e) {
+        console.error('[form-builder] drag-add field failed', e);
       }
     },
     openFieldModal(field) {
