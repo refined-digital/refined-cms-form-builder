@@ -18,13 +18,12 @@ class FormBuilderController extends CoreController
     protected $heading = 'Form Builder';
     protected $button = 'a Form';
 
-    protected $formBuilderRepository;
+    protected readonly FormBuilderRepository $formBuilderRepository;
 
     public function __construct(CoreRepository $coreRepository)
     {
         $this->formBuilderRepository = new FormBuilderRepository();
         $this->formBuilderRepository->setModel($this->model);
-        $this->buttons[] = ['class' => 'button button--blue', 'name' => 'Save & Edit Fields', 'href' => '#'];
 
         parent::__construct($coreRepository);
     }
@@ -33,9 +32,8 @@ class FormBuilderController extends CoreController
 
         $table = new \stdClass();
         $table->fields = [
-            (object) [ 'name' => 'Name', 'field' => 'name', 'sortable' => true, 'route' => 'refined.form-builder.fields.index'],
-            (object) [ 'name' => 'Subject', 'field' => 'subject', 'sortable' => true, 'route' => 'refined.form-builder.fields.index'],
-            (object) [ 'name' => 'Email To', 'field' => 'email_to', 'sortable' => true, 'route' => 'refined.form-builder.fields.index'],
+            (object) [ 'name' => 'Name', 'field' => 'name', 'sortable' => true, 'route' => 'refined.form-builder.edit'],
+            (object) [ 'name' => 'Subject', 'field' => 'subject', 'sortable' => true, 'route' => 'refined.form-builder.edit'],
         ];
         $table->routes = (object) [
             'edit'      => 'refined.form-builder.edit',
@@ -44,8 +42,9 @@ class FormBuilderController extends CoreController
         $table->sortable = false;
 
         $table->extraActions = [
+            (object) [ 'route' => 'refined.form-builder.submissions', 'name' => 'Submissions', 'icon' => 'far fa-list-alt'],
             (object) [ 'route' => 'refined.form-builder.duplicate', 'name' => 'Duplicate', 'icon' => 'far fa-clone'],
-            (object) [ 'route' => 'refined.form-builder.export', 'name' => 'Export', 'icon' => 'far fa-file-excel'],
+            // Export moved off the listing; route + controller@export kept for relocation
         ];
 
         $this->table = $table;
@@ -58,8 +57,28 @@ class FormBuilderController extends CoreController
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
+    public function create()
+    {
+        // minimal create: just a name; saving drops the user into the editor
+        // (the editor autosaves everything else via the API). Buttons are
+        // rendered as objects (matches CoreController's normalisation).
+        $this->buttons = [
+            (object) ['class' => 'button button--blue', 'name' => 'Create Form', 'href' => '#'],
+        ];
+
+        return parent::create();
+    }
+
     public function edit($item)
     {
+        // the visual editor autosaves every change via the JSON API, so the
+        // legacy Save / Save & Return / Save & New header buttons aren't needed.
+        // Keep a single link back to the forms list.
+        $this->buttons = [
+            (object) ['class' => 'button button--grey', 'name' => 'Back to Forms', 'href' => route('refined.form-builder.index')],
+            (object) ['class' => 'button button--blue', 'name' => 'View Submissions', 'href' => route('refined.form-builder.submissions', $item)],
+        ];
+
         // get the instance
         $data = $this->model::findOrFail($item);
 
@@ -126,7 +145,7 @@ class FormBuilderController extends CoreController
                 fputcsv($output, $data['headers']);
 
                 // format the body
-                if(sizeof($data['body'])) {
+                if(count($data['body'])) {
                     foreach($data['body'] as $b) {
                         fputcsv($output, $b);
                     }
@@ -135,6 +154,86 @@ class FormBuilderController extends CoreController
         }
 
         return redirect()->back()->with('status', 'Failed to generate export')->with('fail', 1);
+    }
+
+    /**
+     * Visual list of a form's submissions, grouped one entry per form-fill.
+     * Renders through the standard core index blade so it matches every other
+     * admin listing (header, data-table, action icons).
+     */
+    public function submissions(Form $form)
+    {
+        $groups = $this->formBuilderRepository->groupedSubmissions($form);
+
+        // wrap the grouped collection in a paginator so the standard blade's
+        // pagination works (and ->count() etc. behave like other listings)
+        $perPage = 30;
+        $page = \Illuminate\Pagination\Paginator::resolveCurrentPage();
+        $data = new \Illuminate\Pagination\LengthAwarePaginator(
+            $groups->forPage($page, $perPage)->values(),
+            $groups->count(),
+            $perPage,
+            $page,
+            ['path' => \Illuminate\Pagination\Paginator::resolveCurrentPath()]
+        );
+
+        $table = new \stdClass();
+        $table->fields = [
+            (object) ['name' => 'Submitted',     'field' => 'submitted_at'],
+            (object) ['name' => 'Notifications', 'field' => 'count_label'],
+            (object) ['name' => 'Summary',       'field' => 'summary'],
+        ];
+        // green pencil opens the detail; no destroy route -> no delete icon
+        $table->routes = (object) ['edit' => 'refined.form-builder.submissions.show'];
+        $table->noDelete = [];
+
+        return view('core::pages.index', [
+            'heading'           => $form->name.' — Submissions',
+            'button'            => false,
+            'routes'            => (object) ['index' => route('refined.form-builder.submissions', $form)],
+            'routeEnd'          => 'index',
+            'tableSettings'     => $table,
+            'data'              => $data,
+            'canCreate'         => false,
+            'canDelete'         => false,
+            'canUpdate'         => true,
+            'sort'              => false,
+            'sortable'          => false,
+            'showEnableSorting' => false,
+            'prefix'            => $this->prefix,
+            // breadcrumb: Form Builder / {form} — Submissions
+            'parent'            => (object) ['name' => $this->heading, 'index' => route('refined.form-builder.index')],
+            // right-side buttons
+            'indexButtons'      => [
+                (object) ['name' => 'Back to Forms', 'href' => route('refined.form-builder.index'), 'class' => 'button button--grey'],
+                (object) ['name' => 'Export CSV', 'href' => route('refined.form-builder.export', $form), 'class' => 'button button--blue'],
+                (object) ['name' => 'Edit Form', 'href' => route('refined.form-builder.edit', $form), 'class' => 'button button--blue'],
+            ],
+        ]);
+    }
+
+    /**
+     * Detail of a single grouped submission: the form's field values plus the
+     * per-notification delivery details. Resolves the owning form from the token.
+     */
+    public function submissionShow($token)
+    {
+        $form = $this->formBuilderRepository->findFormByToken($token);
+        $submission = $form ? $this->formBuilderRepository->submissionGroup($form, $token) : null;
+
+        if (!$form || !$submission) {
+            return redirect()
+                ->route('refined.form-builder.index')
+                ->with('status', 'Submission not found')
+                ->with('fail', 1);
+        }
+
+        return view('formBuilder::forms.submissions.show', [
+            'heading'      => $this->heading,
+            'form'         => $form,
+            'submission'   => $submission,
+            'backRoute'    => route('refined.form-builder.submissions', $form),
+        ]);
     }
 
     /**
@@ -166,51 +265,52 @@ class FormBuilderController extends CoreController
      */
      public function submit(FormSubmitRequest $request, Form $form)
      {
-         // exit();
-         // todo: add events to hook into after email has been sent
-         // todo: maybe make the actual sending of the email as an event also
-        switch($form->form_action) {
-            case 2: // email in callback
-                $hasReturn = $this->formBuilderRepository->emailInCallback($request, $form);
-                if ($hasReturn) {
-                    if ($request->expectsJson()) {
-                        return response()->json(['form' => $form, 'return' => $hasReturn]);
-                    }
-                    return $hasReturn;
-                }
-                break;
-            case 3: // save to model
-                $hasReturn = $this->formBuilderRepository->saveToModel($request, $form);
-                if ($hasReturn) {
-                    if ($request->expectsJson()) {
-                        return response()->json(['form' => $form, 'return' => $hasReturn]);
-                    }
-                    return $hasReturn;
-                }
-                break;
-            default:
-                $this->formBuilderRepository->compileAndSend($request, $form);
-            break;
+        // run enabled integrations first; a failure aborts the whole submission
+        // (no notifications, no redirect) — used by Payments for declined charges
+        $failure = $this->formBuilderRepository->runIntegrations($request, $form);
+        if ($failure) {
+            $message = $failure->message ?? 'We could not process your submission.';
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $message, 'errors' => $failure->errors ?? []], 422);
+            }
+            return redirect()->back()->withInput()->withErrors(['form' => $message]);
+        }
+
+        // send the active email notifications unless an enabled integration opted
+        // out via Send Email = No
+        if ($this->formBuilderRepository->shouldSendNotifications($form)) {
+            $this->formBuilderRepository->compileAndSend($request, $form);
         }
 
         if (session()->has('form_data')) {
             session()->forget('form_data');
         }
 
-         if ($form->redirect_page) {
-             $settings = json_decode($form->redirect_page);
-             if (isset($settings->url) && $settings->url) {
-                 if ($request->expectsJson()) {
-                     return response()->json([...$form->only(['id']), 'url' => help()->checkLink($settings->url)]);
-                 }
-                 return redirect($settings->url)->with('complete', 1)->with('form', $form);
-             }
-         }
+        // behaviour outcome (Phase 6): message | redirect_page | redirect_url
+        $action = $form->submit_action ?: 'message';
 
+        if ($action === 'redirect_page' && $form->redirect_page) {
+            $settings = json_decode($form->redirect_page);
+            if (isset($settings->url) && $settings->url) {
+                $url = help()->checkLink($settings->url);
+                if ($request->expectsJson()) {
+                    return response()->json([...$form->only(['id']), 'url' => $url]);
+                }
+                return redirect($url)->with('complete', 1)->with('form', $form);
+            }
+        }
+
+        if ($action === 'redirect_url' && $form->redirect_url) {
+            if ($request->expectsJson()) {
+                return response()->json([...$form->only(['id']), 'url' => $form->redirect_url]);
+            }
+            return redirect($form->redirect_url)->with('complete', 1)->with('form', $form);
+        }
+
+        // default: show the on-screen confirmation message
         if ($request->expectsJson()) {
             return response()->json($form->only(['confirmation', 'id']));
         }
-
 
         return redirect()->back()->with('complete', 1)->with('form', $form);
      }

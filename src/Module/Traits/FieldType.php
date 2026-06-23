@@ -5,6 +5,7 @@ namespace RefinedDigital\FormBuilder\Module\Traits;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use RefinedDigital\FormBuilder\Module\Scopes\FieldTypeScope;
+use RefinedDigital\FormBuilder\Module\Enums\FormFieldType;
 use Str;
 use Blade;
 
@@ -87,95 +88,51 @@ trait FieldType
 
     public function getAttributesAttribute()
     {
-        $args = [
-            'class'     => 'form__control',
-            'id'        => 'form__field--'.$this->id,
-            'required'  => 'required'
-        ];
-
-        if ($this->placeholder) {
-            $args['placeholder'] = $this->placeholder;
+        // delegate per-type HTML attributes to the field's class (htmlAttributes()),
+        // so there's no field-type switch here. custom fields with no host class
+        // fall back to the base attribute set.
+        $instance = forms()->getFieldClassInstance($this);
+        if ($instance) {
+            return $instance->htmlAttributes();
         }
 
-        if (!$this->autocomplete) {
-            $args['autocomplete'] = uniqid(); // chrome ignores off, so set it to a random string
-        }
-
-        switch ($this->form_field_type_id) {
-            case 4:
-                $args['class'] .= ' form__control--radio';
-                break;
-            case 5:
-            case 6:
-                $args['class'] .= ' form__control--checkbox';
-                break;
-            case 7:
-                $args['inputmode'] = 'decimal';
-                break;
-            case 12:
-                unset($args['class']);
-                unset($args['required']);
-                break;
-            case 15:
-                $args['class'] .= ' form__control--date-picker';
-                break;
-            case 17:
-                $fileTypes = $this->getFileFieldTypes($this->settings);
-                if ($fileTypes) {
-                    $args['accept'] = $fileTypes;
-                }
-            case 18:
-                $args['class'] .= ' form__control--multiple-files';
-                $args['multiple'] = 'multiple';
-                break;
-        }
-
-        return $args;
+        return (new \RefinedDigital\FormBuilder\Module\Fields\FormField($this))->htmlAttributes();
     }
 
-    private function getFileFieldTypes($settings)
+    public function getIsStructuralAttribute()
     {
-        $images = 'image/*';
-        $files = 'application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.zip,.7zip';
-
-        if (isset($settings->file_types)) {
-            if ($settings->file_types == 'image') {
-                return $images;
-            }
-
-            if ($settings->file_types == 'document') {
-                return $files;
-            }
-
-            if ($settings->file_types == 'image_document') {
-                return $images.','.$files;
-            }
-        }
-
-        return $images.','.$files;
+        $instance = forms()->getFieldClassInstance($this);
+        return $instance ? $instance->isStructural() : false;
     }
 
     public function getViewAttribute()
     {
-        $name = $this->type->name;
-        if ($this->form_field_type_id == 11) {
-            $name = 'password';
-        }
-
+        // the registry resolves the class for every built-in type (incl. 11),
+        // so there's no per-type special-casing here.
         $class = forms()->getFieldClass($this);
         if ($class) {
-            $view = $class;
-        } else {
-            $view = 'formBuilder::front-end.fields.'.Str::slug($name);;
+            return $class;
+        }
 
-            if ($this->form_field_type_id == 20) {
-                $model = forms()->getFieldClassByName($this->custom_field_class);
-                $view = $model->getView();
+        // no class resolved — fall back to a blade view by type name. for a
+        // custom field (type 20) prefer the host class's own view when present,
+        // otherwise never blow up rendering/the API.
+        $view = 'formBuilder::front-end.fields.'.Str::slug($this->type->name);
+
+        if ($this->form_field_type_id == FormFieldType::CUSTOM->value && $this->custom_field_class) {
+            $customClass = forms()->getFieldClassByName($this->custom_field_class);
+            if (is_string($customClass) && class_exists($customClass)) {
+                $view = (new $customClass($this))->getView();
             }
         }
 
-        return $view;
+        // a custom field with no (resolvable) class would point at a view that
+        // doesn't exist and fatal the whole form. render nothing instead.
+        if (!view()->exists($view) && !class_exists($view)) {
+            return \RefinedDigital\FormBuilder\Module\Fields\FormField::class;
+        }
 
+        return $view;
     }
 
     public function getFieldNameAttribute()
@@ -186,7 +143,7 @@ trait FieldType
 
     public function getShowLabelAttribute()
     {
-        if ($this->form_field_type_id == 6) {
+        if ($this->form_field_type_id == FormFieldType::SINGLE_CHECKBOX->value) {
             return false;
         }
 
@@ -202,7 +159,7 @@ trait FieldType
     {
         $label = $this->id ? $this->attributes['label_position'] : 1;
 
-        $forceToTop = [3,4,5,13,14,15,16,17,18,19];
+        $forceToTop = [FormFieldType::SELECT->value, FormFieldType::RADIO->value, FormFieldType::CHECKBOX->value, FormFieldType::YESNO_SELECT->value, FormFieldType::COUNTRY_SELECT->value, FormFieldType::DATE->value, FormFieldType::DATE_TIME->value, FormFieldType::FILE->value, FormFieldType::MULTIPLE_FILES->value, FormFieldType::STATIC->value];
         if (in_array($this->form_field_type_id, $forceToTop) && $this->attributes['label_position'] != 2) {
             $label = 1;
         }
@@ -214,6 +171,11 @@ trait FieldType
     {
         if (old($this->field_name)) {
             return old($this->field_name);
+        }
+
+        // seed the default value when there's no posted/old value
+        if (isset($this->attributes['default_value']) && $this->attributes['default_value'] !== '' && $this->attributes['default_value'] !== null) {
+            return $this->attributes['default_value'];
         }
 
         return null;

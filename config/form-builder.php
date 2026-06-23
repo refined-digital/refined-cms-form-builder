@@ -252,8 +252,114 @@ return [
         'ZMB' => 'Zambia',
         'ZWE' => 'Zimbabwe',
     ],
+    // field-type id => renderer/validator class. single source of truth for
+    // resolving a field's class; replaces deriving the class from the seeded
+    // type name. ids are load-bearing — keep in sync with the seeder.
+    // type 20 (custom) is intentionally absent: it resolves to a host-app class.
+    'field_classes' => [
+        1  => RefinedDigital\FormBuilder\Module\Fields\FormField_Text::class,
+        2  => RefinedDigital\FormBuilder\Module\Fields\FormField_Textarea::class,
+        3  => RefinedDigital\FormBuilder\Module\Fields\FormField_Select::class,
+        4  => RefinedDigital\FormBuilder\Module\Fields\FormField_Radio::class,
+        5  => RefinedDigital\FormBuilder\Module\Fields\FormField_Checkbox::class,
+        6  => RefinedDigital\FormBuilder\Module\Fields\FormField_SingleCheckbox::class,
+        7  => RefinedDigital\FormBuilder\Module\Fields\FormField_Number::class,
+        8  => RefinedDigital\FormBuilder\Module\Fields\FormField_Email::class,
+        9  => RefinedDigital\FormBuilder\Module\Fields\FormField_Tel::class,
+        10 => RefinedDigital\FormBuilder\Module\Fields\FormField_Password::class,
+        11 => RefinedDigital\FormBuilder\Module\Fields\FormField_PasswordConfirmation::class,
+        12 => RefinedDigital\FormBuilder\Module\Fields\FormField_Hidden::class,
+        13 => RefinedDigital\FormBuilder\Module\Fields\FormField_YesNoSelect::class,
+        14 => RefinedDigital\FormBuilder\Module\Fields\FormField_CountrySelect::class,
+        15 => RefinedDigital\FormBuilder\Module\Fields\FormField_Date::class,
+        16 => RefinedDigital\FormBuilder\Module\Fields\FormField_DateTime::class,
+        17 => RefinedDigital\FormBuilder\Module\Fields\FormField_File::class,
+        18 => RefinedDigital\FormBuilder\Module\Fields\FormField_MultipleFiles::class,
+        19 => RefinedDigital\FormBuilder\Module\Fields\FormField_Static::class,
+        21 => RefinedDigital\FormBuilder\Module\Fields\FormField_DOB::class,
+        22 => RefinedDigital\FormBuilder\Module\Fields\FormField_GroupStart::class,
+        23 => RefinedDigital\FormBuilder\Module\Fields\FormField_GroupEnd::class,
+    ],
     'accepted_mime_types' => 'bmp,csv,doc,docx,gif,jpeg,jpg,pdf,png,ppt,pptx,tif,tiff,txt,xls,xlsx',
     'date_format' => 'd/m/Y',
     'datetime_format' => 'd/m/Y g:ia',
-    'skip_validation' => [19, 12]
+
+    // timezone for displaying submission dates (stored as UTC). When
+    // FORM_BUILDER_TIMEZONE is unset, falls back to the app/server timezone
+    // (APP_TIMEZONE, default UTC). Avoid config() here so it stays cache-safe.
+    'timezone' => env('FORM_BUILDER_TIMEZONE', env('APP_TIMEZONE', 'UTC')),
+
+    'skip_validation' => [19, 12],
+
+    // queue email notification delivery (only effective when QUEUE_CONNECTION is
+    // not 'sync'; the EmailSubmission record is always written synchronously so
+    // the CSV export stays reliable).
+    'queue_emails' => true,
+
+    // notification email branding. Passed through to the core email template at
+    // send time (so core stays decoupled from this config). accent_colour tints
+    // the top bar / labels; logo_url, if set, replaces the site-name wordmark
+    // (must be an absolute URL — email clients can't resolve relative paths).
+    'email' => [
+        'accent_colour' => '#1f2937',
+        'logo_url'      => null,
+    ],
+
+    // reCAPTCHA v3 score threshold (Phase 9). Below this is rejected as a bot.
+    'recaptcha_threshold' => 0.5,
+
+    // gibberish anti-spam thresholds (Phase 9). Keep in sync with the front-end
+    // resources/js/front-end/gibberish.js.
+    'gibberish' => [
+        'min_length' => 8,
+        'min_vowel_ratio' => 0.15,
+        'max_consonant_run' => 5,
+    ],
+
+    // Strong-password rules. A password field opts in via its 'Require a strong
+    // password' setting; these rules then REPLACE the default min:5 and are
+    // enforced front + back. Each rule's `enabled` toggles it; `label` is shown
+    // in the live checklist under the field. Patterns are JS-flavour regex
+    // (no delimiters) so the same source drives PHP (preg) and the browser.
+    'password' => [
+        'min_length' => [
+            'enabled' => true,
+            'value'   => 8,
+            'label'   => 'At least :value characters',
+        ],
+        'max_length' => [
+            'enabled' => false,
+            'value'   => 64,
+            'label'   => 'No more than :value characters',
+        ],
+        'uppercase' => [
+            'enabled' => true,
+            'pattern' => '[A-Z]',
+            'label'   => 'An uppercase letter',
+        ],
+        'lowercase' => [
+            'enabled' => true,
+            'pattern' => '[a-z]',
+            'label'   => 'A lowercase letter',
+        ],
+        'number' => [
+            'enabled' => true,
+            'pattern' => '[0-9]',
+            'label'   => 'A number',
+        ],
+        'special' => [
+            'enabled' => true,
+            'pattern' => '[^A-Za-z0-9]',
+            'label'   => 'A special character',
+        ],
+        'no_spaces' => [
+            'enabled' => false,
+            'label'   => 'No spaces',
+        ],
+
+        // arbitrary extra rules: each { enabled, pattern, label }
+        'custom' => [
+            // ['enabled' => true, 'pattern' => '...', 'label' => '...'],
+        ],
+    ],
 ];

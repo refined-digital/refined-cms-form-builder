@@ -6,24 +6,40 @@ use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Support\Facades\Http;
 
+/**
+ * reCAPTCHA v3 (invisible, score-based). Verifies success AND score >= threshold
+ * AND the expected action. Threshold is config('form-builder.recaptcha_threshold').
+ */
 class ReCaptcha implements ValidationRule
 {
-    /**
-     * Run the validation rule.
-     *
-     * @param  \Closure(string): \Illuminate\Translation\PotentiallyTranslatedString  $fail
-     */
+    public function __construct(
+        protected readonly string $action = 'submit'
+    ) {}
+
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        $data = [
-            'secret' => env('RECAPTCHA_SECRET_KEY'),
-            'response' => $value
-        ];
+        $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+            'secret'   => env('RECAPTCHA_SECRET_KEY'),
+            'response' => $value,
+            'remoteip' => request()->ip(),
+        ]);
 
-        $response = Http::get('https://www.google.com/recaptcha/api/siteverify', $data);
+        $body = $response->json();
 
-        if (!($response->json()["success"] ?? false)) {
-            $fail('The google recaptcha is required.');
+        if (!($body['success'] ?? false)) {
+            $fail('Robot detected. Please try again.');
+            return;
+        }
+
+        $threshold = (float) config('form-builder.recaptcha_threshold', 0.5);
+        if (isset($body['score']) && (float) $body['score'] < $threshold) {
+            $fail('Your submission looks automated. Please try again.');
+            return;
+        }
+
+        // v3 returns the action it was issued for; reject a mismatch
+        if (isset($body['action']) && $this->action && $body['action'] !== $this->action) {
+            $fail('Robot detected. Please try again.');
         }
     }
 }

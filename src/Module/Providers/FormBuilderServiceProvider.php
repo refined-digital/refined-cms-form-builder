@@ -25,6 +25,8 @@ class FormBuilderServiceProvider extends ServiceProvider
             __DIR__.'/../Resources/views',
         ]);
 
+        $this->loadMigrationsFrom(__DIR__.'/../../Database/Migrations');
+
         try {
             if ($this->app->runningInConsole()) {
                 if (\DB::connection()->getDatabaseName() && !\Schema::hasTable('forms')) {

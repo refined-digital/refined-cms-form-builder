@@ -1,0 +1,18 @@
+# files kept in the repo but excluded from the composer dist archive
+# (consumers get a built package: src, config, compiled assets — not the source/tooling)
+/resources              export-ignore
+/tests                  export-ignore
+/.plan                  export-ignore
+/.github                export-ignore
+/.idea                  export-ignore
+/CLAUDE.md              export-ignore
+/phpunit.xml            export-ignore
+/mix-manifest.json      export-ignore
+/node_modules           export-ignore
+/package.json           export-ignore
+/package-lock.json      export-ignore
+/vite.config.js         export-ignore
+/vite.frontend.config.js export-ignore
+/.nvmrc                 export-ignore
+/.gitignore             export-ignore
+/.gitattributes         export-ignore

@@ -2,6 +2,7 @@
 
 namespace RefinedDigital\FormBuilder\Module\Http\Repositories;
 
+use RefinedDigital\FormBuilder\Module\Enums\FormFieldType;
 use RefinedDigital\FormBuilder\Module\Models\FormField;
 use Str;
 
@@ -9,17 +10,14 @@ class FormsRepository
 {
 
     protected $form;
-    protected $template = 'front-end.form';
-    protected $formBuilderRepository;
-    protected $attributes = [];
-    protected $hasPayments = false;
-    protected $templateNamespace = 'formBuilder';
-    protected $selectFieldsOverride = [];
+    protected string $template = 'front-end.form';
+    protected array $attributes = [];
+    protected string $templateNamespace = 'formBuilder';
+    protected array $selectFieldsOverride = [];
     protected $replacement;
 
-    public function __construct(FormBuilderRepository $repo)
+    public function __construct(private readonly FormBuilderRepository $formBuilderRepository)
     {
-        $this->formBuilderRepository = $repo;
     }
 
     public function load($requestedForm)
@@ -55,7 +53,8 @@ class FormsRepository
         $args = new \stdClass();
         $args->route = route('refined.form-builder.submit', $this->form->id);
         $args->attributes = [
-            'class' => ['form--'.$this->form->id],
+            'class' => ['form--builder', 'form--'.$this->form->id],
+            'data-fb-form' => $this->form->id,
             'novalidate'
         ];
 
@@ -67,18 +66,22 @@ class FormsRepository
             $args->attributes['data-replacement'] = $this->replacement;
         }
 
-        if (sizeof($this->attributes)) {
+        if (count($this->attributes)) {
             if (isset($this->attributes['class'])) {
                 $args->attributes['class'] = array_merge($args->attributes['class'], $this->attributes['class']);
                 unset($this->attributes['class']);
             }
 
-            if (sizeof($this->attributes)) {
+            if (count($this->attributes)) {
                 $args->attributes = array_merge($args->attributes, $this->attributes);
             }
         }
 
-        // set the default button text
+        // set the default button text (DB column submit_text wins, then any
+        // fluent override, then the default)
+        if (!empty($this->form->submit_text)) {
+            $this->form->submitText = $this->form->submit_text;
+        }
         if (!isset($this->form->submitText) || (isset($this->form->submitText) && !$this->form->submitText)) {
             $this->form->submitText = 'Submit';
         }
@@ -97,15 +100,63 @@ class FormsRepository
 
         $fields = $this->setFields();
 
+        $integrationMarkup = $this->integrationMarkup();
+
         $returnData = [
             'args' => $args,
             'form' => $this->form,
-            'hasPayments' => $this->hasPayments,
+            'integrationHidden' => $integrationMarkup['hidden'],
+            'integrationVisible' => $integrationMarkup['visible'],
             'fields' => $fields,
             'selectFieldsOverride' => $this->selectFieldsOverride
         ];
 
         return view($template, $returnData);
+    }
+
+    /**
+     * Collect front-end markup contributed by the form's enabled integrations
+     * (Phase 7 generic injection hook). An integration's aggregate `view` is either
+     * a closure or a class with render($form, $config); it returns either a string
+     * (treated as visible markup) or ['hidden' => '…', 'visible' => '…'].
+     */
+    protected function integrationMarkup(): array
+    {
+        $hidden = '';
+        $visible = '';
+
+        $aggregate = app(\RefinedDigital\CMS\Modules\Core\Aggregates\FormBuilderIntegrationAggregate::class);
+
+        foreach ($this->form->integrations()->where('enabled', true)->get() as $row) {
+            $definition = $aggregate->get($row->integration_key);
+            if (!$definition || empty($definition['view'])) {
+                continue;
+            }
+
+            $view = $definition['view'];
+            $config = $row->config ?? [];
+
+            try {
+                if (is_callable($view)) {
+                    $markup = $view($this->form, $config);
+                } elseif (is_string($view) && class_exists($view)) {
+                    $markup = app($view)->render($this->form, $config);
+                } else {
+                    continue;
+                }
+            } catch (\Throwable $e) {
+                continue;
+            }
+
+            if (is_array($markup)) {
+                $hidden .= $markup['hidden'] ?? '';
+                $visible .= $markup['visible'] ?? '';
+            } elseif (is_string($markup)) {
+                $visible .= $markup;
+            }
+        }
+
+        return ['hidden' => $hidden, 'visible' => $visible];
     }
 
     public function setReplacementElement($replacement)
@@ -144,13 +195,6 @@ class FormsRepository
         if ($text) {
             $this->form->loadingText = $text;
         }
-
-        return $this;
-    }
-
-    public function setHasPayments($value)
-    {
-        $this->hasPayments = $value;
 
         return $this;
     }
@@ -196,8 +240,8 @@ class FormsRepository
     private function setFields()
     {
       $fields = new \stdClass();
-      $fields->fields = $this->form->fields->filter(function($field) { return $field->form_field_type_id != 12; });
-      $fields->hidden = $this->form->fields->filter(function($field) { return $field->form_field_type_id == 12; });
+      $fields->fields = $this->form->fields->filter(fn($field) => $field->form_field_type_id != FormFieldType::HIDDEN->value);
+      $fields->hidden = $this->form->fields->filter(fn($field) => $field->form_field_type_id == FormFieldType::HIDDEN->value);
 
       if (isset($this->additionalFields->fields) && $this->additionalFields->fields->count()) {
         foreach ($this->additionalFields->fields as $field) {
@@ -235,7 +279,7 @@ class FormsRepository
 
       // grab the fields
       $id = request()->route('form_builder');
-      $formFields = FormField::whereFormFieldTypeId(8)
+      $formFields = FormField::whereFormFieldTypeId(FormFieldType::EMAIL->value)
                              ->whereFormId($id)
                              ->orderby('name','asc')
                              ->get();
@@ -249,12 +293,19 @@ class FormsRepository
       return $fields;
     }
 
+    /**
+     * Resolve the FormField_* class NAME for a field, or false if none.
+     * Custom (type 20) fields resolve to a host-app class; everything else
+     * comes from the id->class registry (config('form-builder.field_classes')),
+     * falling back to the legacy name-derivation if the config is unpublished.
+     */
     public function getFieldClass($field)
     {
         if ($field->custom_field_class) {
             $class = $this->getCustomFieldClassName($field->custom_field_class);
         } else {
-            $class = $this->getFieldClassName($field->type->name);
+            $map = config('form-builder.field_classes', []);
+            $class = $map[$field->form_field_type_id] ?? $this->getFieldClassName($field->type->name);
         }
 
         if (class_exists($class)) {
@@ -262,6 +313,22 @@ class FormsRepository
         }
 
         return false;
+    }
+
+    /**
+     * Resolve and instantiate a field's class. Single entry point used by both
+     * rendering and validation so neither needs a field-type switch. Returns
+     * null when no class resolves (e.g. a custom field whose host class is
+     * missing).
+     */
+    public function getFieldClassInstance($field, $defaultFields = [], $selectFieldsOverride = [])
+    {
+        $class = $this->getFieldClass($field);
+        if (!$class) {
+            return null;
+        }
+
+        return new $class($field, $defaultFields, $selectFieldsOverride);
     }
 
     public function getFieldClassByName($customClassName)
@@ -303,20 +370,13 @@ class FormsRepository
                 }
 
                 if ($keyType) {
-                  switch ($keyType) {
-                    case 'snake':
-                      $key = Str::snake($key);
-                      break;
-                    case 'camel':
-                      $key = Str::camel($key);
-                      break;
-                    case 'kebab':
-                      $key = Str::kebab($key);
-                      break;
-                    case 'slug':
-                      $key = Str::slug($key);
-                      break;
-                  }
+                  $key = match ($keyType) {
+                    'snake' => Str::snake($key),
+                    'camel' => Str::camel($key),
+                    'kebab' => Str::kebab($key),
+                    'slug'  => Str::slug($key),
+                    default => $key,
+                  };
                 }
 
                 $data[$key] = $request->get($field->field_name);
@@ -337,7 +397,7 @@ class FormsRepository
 
       $hiddenClassName = $this->getFieldClassName('hidden');
 
-      if (is_array($fields) && sizeof($fields)) {
+      if (is_array($fields) && count($fields)) {
         foreach ($fields as $field) {
           $field = (object) $field;
 
@@ -345,7 +405,7 @@ class FormsRepository
           $view = 'formBuilder::front-end.fields.'.$field->view;
 
           if ($field->view === 'hidden') {
-            $field->form_field_type_id = 12;
+            $field->form_field_type_id = FormFieldType::HIDDEN->value;
             if ($field->value) {
               $field->hidden_field_value = $field->value;
             }

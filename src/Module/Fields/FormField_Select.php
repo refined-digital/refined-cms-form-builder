@@ -4,21 +4,13 @@ namespace RefinedDigital\FormBuilder\Module\Fields;
 
 class FormField_Select extends FormField {
 
-    public function render()
+    protected function options(): ?array
     {
-        return <<<'blade'
-@php
-  $options = $field->select_options;
-  if (isset($selectFieldsOverride[$field->field_name])) {
-      $options = $selectFieldsOverride[$field->field_name];
-  }
-@endphp
-{!!
-    html()
-        ->select($field->field_name, $options, $value)
-        ->attributes($field->attributes)
-!!}
-blade;
+        $field = $this->field;
+        if (isset($this->selectFieldsOverride[$field->field_name])) {
+            return $this->selectFieldsOverride[$field->field_name];
+        }
+        return $field->select_options;
     }
 
 }

@@ -4,15 +4,16 @@ namespace RefinedDigital\FormBuilder\Module\Fields;
 
 class FormField_Number extends FormField {
 
-    public function render()
+    public function htmlAttributes(): array
     {
-        return <<<'blade'
-{!!
-    html()
-        ->input('number', $field->field_name, $value)
-        ->attributes($field->attributes)        
-!!}    
-blade;
+        $args = parent::htmlAttributes();
+        $args['inputmode'] = 'decimal';
+        return $args;
+    }
+
+    protected function inputType(): ?string
+    {
+        return 'number';
     }
 
 }

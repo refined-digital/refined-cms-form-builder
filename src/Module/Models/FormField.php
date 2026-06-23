@@ -13,7 +13,9 @@ class FormField extends CoreModel implements Sortable
 
     protected $fillable = [
         'form_id', 'form_field_type_id', 'active', 'show_label', 'position',
-        'name', 'required', 'placeholder', 'data', 'custom_field_class', 'store_in',
+        'name', 'required', 'placeholder', 'default_value', 'error_message',
+        'include_in_email', 'visibility', 'visibility_rules',
+        'data', 'custom_field_class', 'store_in',
         'note', 'label_position', 'autocomplete', 'custom_class',
         'note_position', 'merge_field', 'hidden_field_value', 'settings',
     ];
@@ -29,6 +31,8 @@ class FormField extends CoreModel implements Sortable
       'note_position' => 'integer',
       'label_position' => 'integer',
       'autocomplete' => 'integer',
+      'include_in_email' => 'integer',
+      'visibility_rules' => 'array',
       'settings' => 'object',
     ];
 
