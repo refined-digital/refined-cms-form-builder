@@ -19,7 +19,7 @@ use RefinedDigital\CMS\Modules\Core\Aggregates\FormBuilderIntegrationAggregate;
  */
 class FormBuilderApiController extends Controller
 {
-    protected FormBuilderRepository $repository;
+    protected readonly FormBuilderRepository $repository;
 
     /**
      * Palette grouping + icons for each field-type id. Drives FieldPalette.vue.

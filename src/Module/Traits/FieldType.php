@@ -5,6 +5,7 @@ namespace RefinedDigital\FormBuilder\Module\Traits;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use RefinedDigital\FormBuilder\Module\Scopes\FieldTypeScope;
+use RefinedDigital\FormBuilder\Module\Enums\FormFieldType;
 use Str;
 use Blade;
 
@@ -118,7 +119,7 @@ trait FieldType
         // otherwise never blow up rendering/the API.
         $view = 'formBuilder::front-end.fields.'.Str::slug($this->type->name);
 
-        if ($this->form_field_type_id == 20 && $this->custom_field_class) {
+        if ($this->form_field_type_id == FormFieldType::CUSTOM->value && $this->custom_field_class) {
             $customClass = forms()->getFieldClassByName($this->custom_field_class);
             if (is_string($customClass) && class_exists($customClass)) {
                 $view = (new $customClass($this))->getView();
@@ -142,7 +143,7 @@ trait FieldType
 
     public function getShowLabelAttribute()
     {
-        if ($this->form_field_type_id == 6) {
+        if ($this->form_field_type_id == FormFieldType::SINGLE_CHECKBOX->value) {
             return false;
         }
 
@@ -158,7 +159,7 @@ trait FieldType
     {
         $label = $this->id ? $this->attributes['label_position'] : 1;
 
-        $forceToTop = [3,4,5,13,14,15,16,17,18,19];
+        $forceToTop = [FormFieldType::SELECT->value, FormFieldType::RADIO->value, FormFieldType::CHECKBOX->value, FormFieldType::YESNO_SELECT->value, FormFieldType::COUNTRY_SELECT->value, FormFieldType::DATE->value, FormFieldType::DATE_TIME->value, FormFieldType::FILE->value, FormFieldType::MULTIPLE_FILES->value, FormFieldType::STATIC->value];
         if (in_array($this->form_field_type_id, $forceToTop) && $this->attributes['label_position'] != 2) {
             $label = 1;
         }

@@ -3,6 +3,7 @@
 namespace RefinedDigital\FormBuilder\Module\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use RefinedDigital\FormBuilder\Module\Enums\FormFieldType;
 use RefinedDigital\FormBuilder\Module\Rules\ReCaptcha;
 use RefinedDigital\FormBuilder\Module\Rules\Gibberish;
 use RefinedDigital\FormBuilder\Module\Support\ConditionEvaluator;
@@ -27,7 +28,7 @@ class FormSubmitRequest extends FormRequest
      *
      * @return array
      */
-    public function rules()
+    public function rules(): ?array
     {
         $form = $this->route('form');
         $skip = config('form-builder.skip_validation');
@@ -128,20 +129,20 @@ class FormSubmitRequest extends FormRequest
      */
     protected function customFieldRules($field, $instance): array
     {
-        if ($field->form_field_type_id != 20 || !method_exists($instance, 'getValidationRules')) {
+        if ($field->form_field_type_id != FormFieldType::CUSTOM->value || !method_exists($instance, 'getValidationRules')) {
             return [];
         }
 
         $validationRules = $instance->getValidationRules();
         $rules = [];
 
-        if (isset($validationRules->required) && sizeof($validationRules->required)) {
+        if (isset($validationRules->required) && count($validationRules->required)) {
             foreach ($validationRules->required as $rule) {
                 $rules[] = $rule;
             }
         }
 
-        if (isset($validationRules->messages) && sizeof($validationRules->messages)) {
+        if (isset($validationRules->messages) && count($validationRules->messages)) {
             foreach ($validationRules->messages as $rule => $message) {
                 $this->customMessages[$field->field_name.'.'.$rule] = $message;
             }
@@ -156,7 +157,7 @@ class FormSubmitRequest extends FormRequest
      *
      * @return array
      */
-    public function messages()
+    public function messages(): array
     {
         return $this->customMessages;
     }

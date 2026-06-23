@@ -19,7 +19,10 @@ Route::namespace('FormBuilder\Module\Http\Controllers')
                     'as'    => 'form-builder.submissions',
                     'uses'  => 'FormBuilderController@submissions'
                 ]);
-                Route::get('{form}/submissions/{token}', [
+                // single {token} param so the standard index blade's
+                // route(edit, $d->id) resolves cleanly; the form is derived
+                // from the submission group inside the controller.
+                Route::get('submissions/{token}', [
                     'as'    => 'form-builder.submissions.show',
                     'uses'  => 'FormBuilderController@submissionShow'
                 ]);

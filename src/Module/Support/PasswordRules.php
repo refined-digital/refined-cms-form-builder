@@ -111,7 +111,7 @@ class PasswordRules
         return count(self::active()) > 0;
     }
 
-    protected static function label(string $template, $value): string
+    protected static function label(string $template, int|float|string $value): string
     {
         return str_replace(':value', (string) $value, $template);
     }

@@ -37,19 +37,11 @@ class FormField_File extends FormField {
         $images = 'image/*';
         $files = 'application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.zip,.7zip';
 
-        if (isset($settings->file_types)) {
-            if ($settings->file_types == 'image') {
-                return $images;
-            }
-            if ($settings->file_types == 'document') {
-                return $files;
-            }
-            if ($settings->file_types == 'image_document') {
-                return $images.','.$files;
-            }
-        }
-
-        return $images.','.$files;
+        return match ($settings->file_types ?? null) {
+            'image'    => $images,
+            'document' => $files,
+            default    => $images.','.$files,
+        };
     }
 
     public function render()

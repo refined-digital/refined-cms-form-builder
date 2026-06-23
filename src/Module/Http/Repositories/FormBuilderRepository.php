@@ -8,6 +8,7 @@ use RefinedDigital\FormBuilder\Module\Models\Form;
 use RefinedDigital\FormBuilder\Module\Models\FormField;
 use RefinedDigital\FormBuilder\Module\Models\FormFieldOption;
 use RefinedDigital\FormBuilder\Module\Models\FormFieldType;
+use RefinedDigital\FormBuilder\Module\Enums\FormFieldType as FieldType;
 use RefinedDigital\FormBuilder\Module\Models\FormEmailNotification;
 use RefinedDigital\FormBuilder\Module\Models\FormIntegration;
 
@@ -22,14 +23,12 @@ class FormBuilderRepository extends CoreRepository
 
     public function getForSelect($type = false)
     {
-        switch ($type) {
-            case 'field types':
-                return $this->getFormFieldTypesForSelect();
-            case 'forms':
-                return $this->getFormsForSelect();
-            case 'content forms':
-                return $this->getFormsForContentSelect();
-        }
+        return match ($type) {
+            'field types'   => $this->getFormFieldTypesForSelect(),
+            'forms'         => $this->getFormsForSelect(),
+            'content forms' => $this->getFormsForContentSelect(),
+            default         => null,
+        };
     }
 
     public function getFormFieldTypesForSelect()
@@ -142,7 +141,7 @@ class FormBuilderRepository extends CoreRepository
         FormFieldOption::whereFormFieldId($fieldId)->forceDelete();
 
         // now add any, if there is any
-        if (is_array($options) && sizeof($options)) {
+        if (is_array($options) && count($options)) {
             foreach ($options as $option) {
                 FormFieldOption::create([
                     'form_field_id' => $fieldId,
@@ -169,7 +168,7 @@ class FormBuilderRepository extends CoreRepository
         if ($originalForm->fields->count()) {
             foreach ($originalForm->fields as $field) {
                 $newField = $repo->store($field->toArray(), ['form_id' => $newForm->id]);
-                if (is_array($field->options) && sizeof($field->options) && isset($newField->id)) {
+                if (is_array($field->options) && count($field->options) && isset($newField->id)) {
                     $this->syncOptions($newField->id, $field->options);
                 }
             }
@@ -219,7 +218,7 @@ class FormBuilderRepository extends CoreRepository
             ];
             // match EmailRepository::formatFields skip list (passwords, static,
             // hidden, group start/end) so export columns line up with the data
-            $hide = [10,11,12,19,22,23];
+            $hide = [FieldType::PASSWORD->value, FieldType::PASSWORD_CONFIRM->value, FieldType::HIDDEN->value, FieldType::STATIC->value, FieldType::GROUP_START->value, FieldType::GROUP_END->value];
 
             // add in the field titles
             if ($form->fields && $form->fields->count()) {
@@ -263,7 +262,7 @@ class FormBuilderRepository extends CoreRepository
                 }
             }
 
-            if (sizeof($headers) && sizeof($body)) {
+            if (count($headers) && count($body)) {
                 return ['headers' => $headers, 'body' => $body];
             }
 
@@ -293,11 +292,16 @@ class FormBuilderRepository extends CoreRepository
 
             if (!isset($groups[$token])) {
                 $groups[$token] = (object) [
-                    'token'      => $token,
-                    'created_at' => $entry->created_at,
-                    'count'      => 0,
-                    'summary'    => $this->submissionSummary($entry, $form),
-                    'rows'       => [],
+                    // `id` mirrors the token so the standard index blade's
+                    // route(..., $d->id) resolves the {token} detail route
+                    'id'           => $token,
+                    'token'        => $token,
+                    'created_at'   => $entry->created_at,
+                    'submitted_at' => '', // pre-formatted (timezone-aware) below
+                    'count'        => 0,
+                    'count_label'  => '',
+                    'summary'      => $this->submissionSummary($entry, $form),
+                    'rows'         => [],
                 ];
             }
 
@@ -307,6 +311,15 @@ class FormBuilderRepository extends CoreRepository
             if ($entry->created_at < $groups[$token]->created_at) {
                 $groups[$token]->created_at = $entry->created_at;
             }
+        }
+
+        $tz = config('form-builder.timezone');
+        $format = config('form-builder.datetime_format', 'd/m/Y g:ia');
+        foreach ($groups as $g) {
+            // a friendly "N sent" label for the Notifications column
+            $g->count_label = $g->count.' sent';
+            // timezone-aware display string (the list column renders it as text)
+            $g->submitted_at = $g->created_at->copy()->timezone($tz)->format($format);
         }
 
         return collect(array_values($groups))->sortByDesc('created_at')->values();
@@ -354,6 +367,28 @@ class FormBuilderRepository extends CoreRepository
             'fields'        => $fields,
             'notifications' => $notifications,
         ];
+    }
+
+    /**
+     * Resolve the Form a submission group belongs to, from its token alone.
+     * Tokens are globally-unique uuids (legacy rows use id-{n}); we find the
+     * owning EmailSubmission and load its form. Returns null if not found.
+     */
+    public function findFormByToken($token)
+    {
+        $submission = \RefinedDigital\CMS\Modules\Core\Models\EmailSubmission::query()
+            ->when(str_starts_with($token, 'id-'), function ($q) use ($token) {
+                $q->where('id', (int) substr($token, 3));
+            }, function ($q) use ($token) {
+                $q->where('data', 'like', '%"submission_group":"'.$token.'"%');
+            })
+            ->first();
+
+        if (!$submission || !$submission->form_id) {
+            return null;
+        }
+
+        return \RefinedDigital\FormBuilder\Module\Models\Form::find($submission->form_id);
     }
 
     /** A short one-line summary of a submission (first couple of field values). */
@@ -424,7 +459,7 @@ class FormBuilderRepository extends CoreRepository
             $ids = $form->fields->pluck('form_field_type_id');
 
             // file fields
-            if ($ids->contains(17) || $ids->contains(18)) {
+            if ($ids->contains(FieldType::FILE->value) || $ids->contains(FieldType::MULTIPLE_FILES->value)) {
                 return true;
             }
 
@@ -513,17 +548,32 @@ class FormBuilderRepository extends CoreRepository
         $submissionGroup = (string) \Illuminate\Support\Str::uuid();
 
         foreach ($notifications as $notification) {
+            // recipients may contain field<id> tokens — swap each for the
+            // submitted value, dropping any that resolve empty
+            $to = $this->resolveRecipients($notification->to, $request);
+
+            // nothing to send to (e.g. the only recipient was an empty field)
+            if ($to === '') {
+                continue;
+            }
+
             $settings = new \stdClass();
             $settings->submission_group = $submissionGroup;
             $settings->notification_name = $notification->name;
-            $settings->to = $notification->to;
+            $settings->to = $to;
             $settings->subject = $repo->replaceTokens($notification->subject, $request, $form);
 
             if ($notification->cc) {
-                $settings->cc = $notification->cc;
+                $cc = $this->resolveRecipients($notification->cc, $request);
+                if ($cc !== '') {
+                    $settings->cc = $cc;
+                }
             }
             if ($notification->bcc) {
-                $settings->bcc = $notification->bcc;
+                $bcc = $this->resolveRecipients($notification->bcc, $request);
+                if ($bcc !== '') {
+                    $settings->bcc = $bcc;
+                }
             }
 
             // reply_to may reference an email-type field (field<id>) or be a literal
@@ -571,6 +621,42 @@ class FormBuilderRepository extends CoreRepository
         }
 
         return $replyTo;
+    }
+
+    /**
+     * Resolve a comma-delimited recipient list (to/cc/bcc) that may mix literal
+     * email addresses with field<id> tokens. Each token is swapped for the
+     * submitted value; empty/unresolved entries are dropped. Returns a clean
+     * comma-delimited string (empty string if nothing resolves).
+     */
+    protected function resolveRecipients($list, $request)
+    {
+        if (!$list) {
+            return '';
+        }
+
+        $data = is_array($request) ? $request : $request->all();
+        $out = [];
+
+        foreach (explode(',', $list) as $entry) {
+            $entry = trim($entry);
+            if ($entry === '') {
+                continue;
+            }
+
+            // field<id> token -> the submitted value (skip if blank/missing)
+            if (preg_match('/^field\d+$/', $entry)) {
+                $value = trim((string) ($data[$entry] ?? ''));
+                if ($value !== '') {
+                    $out[] = $value;
+                }
+                continue;
+            }
+
+            $out[] = $entry;
+        }
+
+        return implode(',', $out);
     }
 
     public function destroyField($id)

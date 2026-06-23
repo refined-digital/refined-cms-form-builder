@@ -18,7 +18,7 @@ class FormBuilderController extends CoreController
     protected $heading = 'Form Builder';
     protected $button = 'a Form';
 
-    protected $formBuilderRepository;
+    protected readonly FormBuilderRepository $formBuilderRepository;
 
     public function __construct(CoreRepository $coreRepository)
     {
@@ -44,7 +44,7 @@ class FormBuilderController extends CoreController
         $table->extraActions = [
             (object) [ 'route' => 'refined.form-builder.submissions', 'name' => 'Submissions', 'icon' => 'far fa-list-alt'],
             (object) [ 'route' => 'refined.form-builder.duplicate', 'name' => 'Duplicate', 'icon' => 'far fa-clone'],
-            (object) [ 'route' => 'refined.form-builder.export', 'name' => 'Export', 'icon' => 'far fa-file-excel'],
+            // Export moved off the listing; route + controller@export kept for relocation
         ];
 
         $this->table = $table;
@@ -76,6 +76,7 @@ class FormBuilderController extends CoreController
         // Keep a single link back to the forms list.
         $this->buttons = [
             (object) ['class' => 'button button--grey', 'name' => 'Back to Forms', 'href' => route('refined.form-builder.index')],
+            (object) ['class' => 'button button--blue', 'name' => 'View Submissions', 'href' => route('refined.form-builder.submissions', $item)],
         ];
 
         // get the instance
@@ -144,7 +145,7 @@ class FormBuilderController extends CoreController
                 fputcsv($output, $data['headers']);
 
                 // format the body
-                if(sizeof($data['body'])) {
+                if(count($data['body'])) {
                     foreach($data['body'] as $b) {
                         fputcsv($output, $b);
                     }
@@ -157,28 +158,72 @@ class FormBuilderController extends CoreController
 
     /**
      * Visual list of a form's submissions, grouped one entry per form-fill.
+     * Renders through the standard core index blade so it matches every other
+     * admin listing (header, data-table, action icons).
      */
     public function submissions(Form $form)
     {
-        return view('formBuilder::forms.submissions.index', [
-            'heading'     => $this->heading,
-            'form'        => $form,
-            'submissions' => $this->formBuilderRepository->groupedSubmissions($form),
-            'backRoute'   => route('refined.form-builder.index'),
+        $groups = $this->formBuilderRepository->groupedSubmissions($form);
+
+        // wrap the grouped collection in a paginator so the standard blade's
+        // pagination works (and ->count() etc. behave like other listings)
+        $perPage = 30;
+        $page = \Illuminate\Pagination\Paginator::resolveCurrentPage();
+        $data = new \Illuminate\Pagination\LengthAwarePaginator(
+            $groups->forPage($page, $perPage)->values(),
+            $groups->count(),
+            $perPage,
+            $page,
+            ['path' => \Illuminate\Pagination\Paginator::resolveCurrentPath()]
+        );
+
+        $table = new \stdClass();
+        $table->fields = [
+            (object) ['name' => 'Submitted',     'field' => 'submitted_at'],
+            (object) ['name' => 'Notifications', 'field' => 'count_label'],
+            (object) ['name' => 'Summary',       'field' => 'summary'],
+        ];
+        // green pencil opens the detail; no destroy route -> no delete icon
+        $table->routes = (object) ['edit' => 'refined.form-builder.submissions.show'];
+        $table->noDelete = [];
+
+        return view('core::pages.index', [
+            'heading'           => $form->name.' — Submissions',
+            'button'            => false,
+            'routes'            => (object) ['index' => route('refined.form-builder.submissions', $form)],
+            'routeEnd'          => 'index',
+            'tableSettings'     => $table,
+            'data'              => $data,
+            'canCreate'         => false,
+            'canDelete'         => false,
+            'canUpdate'         => true,
+            'sort'              => false,
+            'sortable'          => false,
+            'showEnableSorting' => false,
+            'prefix'            => $this->prefix,
+            // breadcrumb: Form Builder / {form} — Submissions
+            'parent'            => (object) ['name' => $this->heading, 'index' => route('refined.form-builder.index')],
+            // right-side buttons
+            'indexButtons'      => [
+                (object) ['name' => 'Back to Forms', 'href' => route('refined.form-builder.index'), 'class' => 'button button--grey'],
+                (object) ['name' => 'Export CSV', 'href' => route('refined.form-builder.export', $form), 'class' => 'button button--blue'],
+                (object) ['name' => 'Edit Form', 'href' => route('refined.form-builder.edit', $form), 'class' => 'button button--blue'],
+            ],
         ]);
     }
 
     /**
      * Detail of a single grouped submission: the form's field values plus the
-     * per-notification delivery details.
+     * per-notification delivery details. Resolves the owning form from the token.
      */
-    public function submissionShow(Form $form, $token)
+    public function submissionShow($token)
     {
-        $submission = $this->formBuilderRepository->submissionGroup($form, $token);
+        $form = $this->formBuilderRepository->findFormByToken($token);
+        $submission = $form ? $this->formBuilderRepository->submissionGroup($form, $token) : null;
 
-        if (!$submission) {
+        if (!$form || !$submission) {
             return redirect()
-                ->route('refined.form-builder.submissions', $form)
+                ->route('refined.form-builder.index')
                 ->with('status', 'Submission not found')
                 ->with('fail', 1);
         }

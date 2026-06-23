@@ -26,23 +26,14 @@ class Install extends Command
 
     protected $siteKey = '';
     protected $secretKey = '';
-
-    /**
-     * Create a new command instance.
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-        parent::__construct();
-    }
+    protected $timezone = '';
 
     /**
      * Execute the console command.
      *
-     * @return mixed
+     * @return void
      */
-    public function handle()
+    public function handle(): void
     {
         $this->askQuestions();
         $this->migrate();
@@ -52,7 +43,7 @@ class Install extends Command
         $this->info('Form Builder has been successfully installed');
     }
 
-    protected function askQuestions()
+    protected function askQuestions(): void
     {
         $helper = $this->getHelper('question');
 
@@ -75,9 +66,14 @@ class Install extends Command
         });
         $question->setMaxAttempts(3);
         $this->secretKey = $helper->ask($this->input, $this->output, $question);
+
+        // optional: timezone for displaying submission dates (stored as UTC).
+        // blank = use the server/app default.
+        $question = new Question('Submission display timezone (e.g. Pacific/Auckland) — leave blank for the server default: ', '');
+        $this->timezone = trim((string) $helper->ask($this->input, $this->output, $question));
     }
 
-    protected function migrate()
+    protected function migrate(): void
     {
         $this->output->writeln('<info>Migrating the database</info>');
         Artisan::call('migrate', [
@@ -86,7 +82,7 @@ class Install extends Command
         ]);
     }
 
-    protected function seed()
+    protected function seed(): void
     {
         $this->output->writeln('<info>Seeding the database</info>');
         Artisan::call('db:seed', [
@@ -129,7 +125,7 @@ class Install extends Command
         }
     }
 
-    protected function updateEnvFile()
+    protected function updateEnvFile(): void
     {
         $env = app()->environmentFilePath();
         $file = file_get_contents($env);
@@ -138,6 +134,13 @@ class Install extends Command
         $file .= "\n\nRECAPTCHA_SITE_KEY=".$this->siteKey."
 RECAPTCHA_SECRET_KEY=".$this->secretKey."
 RECAPTCHA_SKIP_IP=".config('app.url');
+
+        // only set the timezone override when one was provided; otherwise the
+        // config falls back to the server/app default (APP_TIMEZONE)
+        if ($this->timezone !== '') {
+            $file .= "\nFORM_BUILDER_TIMEZONE=".$this->timezone;
+        }
+
         file_put_contents($env, $file);
     }
 }

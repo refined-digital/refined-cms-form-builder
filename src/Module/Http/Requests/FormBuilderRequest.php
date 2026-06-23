@@ -21,7 +21,7 @@ class FormBuilderRequest extends FormRequest
      *
      * @return array
      */
-    public function rules()
+    public function rules(): array
     {
         // Forms are created with just a name, then configured in the visual editor
         // (fields, behaviour, notifications, integrations, settings) which persists
@@ -32,7 +32,7 @@ class FormBuilderRequest extends FormRequest
         ];
 
         // don't let an update collide with the record's own name
-        if ($this->method() == 'PUT' || $this->method() == 'PATCH') {
+        if ($this->method() === 'PUT' || $this->method() === 'PATCH') {
             $args['name']['unique'] .= ','.$this->route('form_builder');
         }
 
@@ -45,7 +45,7 @@ class FormBuilderRequest extends FormRequest
      *
      * @return array
      */
-    public function messages()
+    public function messages(): array
     {
         return [
             'name.required' => 'The form name is required.',

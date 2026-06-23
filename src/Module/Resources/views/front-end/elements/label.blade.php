@@ -1,6 +1,6 @@
 <?php
     $attributes = $field->attributes;
-    if ($field->form_field_type_id == 11 && $field->name == 'Confirmation') {
+    if ($field->form_field_type_id == \RefinedDigital\FormBuilder\Module\Enums\FormFieldType::PASSWORD_CONFIRM->value && $field->name == 'Confirmation') {
         $attributes['id'] .= '-confirmation';
     }
     $class = 'form__label';

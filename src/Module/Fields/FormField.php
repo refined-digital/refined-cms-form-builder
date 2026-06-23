@@ -3,22 +3,24 @@
 namespace RefinedDigital\FormBuilder\Module\Fields;
 
 use Illuminate\Container\Container;
+use RefinedDigital\FormBuilder\Module\Enums\FormFieldType;
 
 class FormField {
-    protected $field;
-    protected $value;
-    protected $selectFieldsOverride;
-    protected $defaultFields;
+    protected mixed $field;
+    protected mixed $value;
+    protected array $selectFieldsOverride;
+    protected array $defaultFields;
 
-    public function __construct($field, $defaultFields = [], $selectFieldsOverride = [])
+    public function __construct($field, ?array $defaultFields = [], ?array $selectFieldsOverride = [])
     {
+        // callers may pass null (e.g. a form with no defaultFields); normalise
         $this->field = $field;
-        $this->selectFieldsOverride = $selectFieldsOverride;
-        $this->defaultFields = $defaultFields;
+        $this->selectFieldsOverride = $selectFieldsOverride ?? [];
+        $this->defaultFields = $defaultFields ?? [];
 
         $value = $field->value;
 
-        if ($field->form_field_type_id == 12) {
+        if ($field->form_field_type_id == FormFieldType::HIDDEN->value) {
             $value = $field->hidden_field_value ?? $field->data;
         }
 
@@ -181,7 +183,7 @@ blade;
         return false;
     }
 
-    public function renderView()
+    public function renderView(): string
     {
         $view = $this->resolveView($this->render());
 
@@ -190,7 +192,7 @@ blade;
             'value' => $this->value
         ];
 
-        if ($this->field->form_field_type_id == 3 && $this->selectFieldsOverride) {
+        if ($this->field->form_field_type_id == FormFieldType::SELECT->value && $this->selectFieldsOverride) {
             $with['selectFieldsOverride'] = $this->selectFieldsOverride;
         }
 

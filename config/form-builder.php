@@ -283,6 +283,12 @@ return [
     'accepted_mime_types' => 'bmp,csv,doc,docx,gif,jpeg,jpg,pdf,png,ppt,pptx,tif,tiff,txt,xls,xlsx',
     'date_format' => 'd/m/Y',
     'datetime_format' => 'd/m/Y g:ia',
+
+    // timezone for displaying submission dates (stored as UTC). When
+    // FORM_BUILDER_TIMEZONE is unset, falls back to the app/server timezone
+    // (APP_TIMEZONE, default UTC). Avoid config() here so it stays cache-safe.
+    'timezone' => env('FORM_BUILDER_TIMEZONE', env('APP_TIMEZONE', 'UTC')),
+
     'skip_validation' => [19, 12],
 
     // queue email notification delivery (only effective when QUEUE_CONNECTION is

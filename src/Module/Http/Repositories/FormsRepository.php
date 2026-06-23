@@ -2,6 +2,7 @@
 
 namespace RefinedDigital\FormBuilder\Module\Http\Repositories;
 
+use RefinedDigital\FormBuilder\Module\Enums\FormFieldType;
 use RefinedDigital\FormBuilder\Module\Models\FormField;
 use Str;
 
@@ -9,16 +10,14 @@ class FormsRepository
 {
 
     protected $form;
-    protected $template = 'front-end.form';
-    protected $formBuilderRepository;
-    protected $attributes = [];
-    protected $templateNamespace = 'formBuilder';
-    protected $selectFieldsOverride = [];
+    protected string $template = 'front-end.form';
+    protected array $attributes = [];
+    protected string $templateNamespace = 'formBuilder';
+    protected array $selectFieldsOverride = [];
     protected $replacement;
 
-    public function __construct(FormBuilderRepository $repo)
+    public function __construct(private readonly FormBuilderRepository $formBuilderRepository)
     {
-        $this->formBuilderRepository = $repo;
     }
 
     public function load($requestedForm)
@@ -67,13 +66,13 @@ class FormsRepository
             $args->attributes['data-replacement'] = $this->replacement;
         }
 
-        if (sizeof($this->attributes)) {
+        if (count($this->attributes)) {
             if (isset($this->attributes['class'])) {
                 $args->attributes['class'] = array_merge($args->attributes['class'], $this->attributes['class']);
                 unset($this->attributes['class']);
             }
 
-            if (sizeof($this->attributes)) {
+            if (count($this->attributes)) {
                 $args->attributes = array_merge($args->attributes, $this->attributes);
             }
         }
@@ -241,8 +240,8 @@ class FormsRepository
     private function setFields()
     {
       $fields = new \stdClass();
-      $fields->fields = $this->form->fields->filter(function($field) { return $field->form_field_type_id != 12; });
-      $fields->hidden = $this->form->fields->filter(function($field) { return $field->form_field_type_id == 12; });
+      $fields->fields = $this->form->fields->filter(fn($field) => $field->form_field_type_id != FormFieldType::HIDDEN->value);
+      $fields->hidden = $this->form->fields->filter(fn($field) => $field->form_field_type_id == FormFieldType::HIDDEN->value);
 
       if (isset($this->additionalFields->fields) && $this->additionalFields->fields->count()) {
         foreach ($this->additionalFields->fields as $field) {
@@ -280,7 +279,7 @@ class FormsRepository
 
       // grab the fields
       $id = request()->route('form_builder');
-      $formFields = FormField::whereFormFieldTypeId(8)
+      $formFields = FormField::whereFormFieldTypeId(FormFieldType::EMAIL->value)
                              ->whereFormId($id)
                              ->orderby('name','asc')
                              ->get();
@@ -371,20 +370,13 @@ class FormsRepository
                 }
 
                 if ($keyType) {
-                  switch ($keyType) {
-                    case 'snake':
-                      $key = Str::snake($key);
-                      break;
-                    case 'camel':
-                      $key = Str::camel($key);
-                      break;
-                    case 'kebab':
-                      $key = Str::kebab($key);
-                      break;
-                    case 'slug':
-                      $key = Str::slug($key);
-                      break;
-                  }
+                  $key = match ($keyType) {
+                    'snake' => Str::snake($key),
+                    'camel' => Str::camel($key),
+                    'kebab' => Str::kebab($key),
+                    'slug'  => Str::slug($key),
+                    default => $key,
+                  };
                 }
 
                 $data[$key] = $request->get($field->field_name);
@@ -405,7 +397,7 @@ class FormsRepository
 
       $hiddenClassName = $this->getFieldClassName('hidden');
 
-      if (is_array($fields) && sizeof($fields)) {
+      if (is_array($fields) && count($fields)) {
         foreach ($fields as $field) {
           $field = (object) $field;
 
@@ -413,7 +405,7 @@ class FormsRepository
           $view = 'formBuilder::front-end.fields.'.$field->view;
 
           if ($field->view === 'hidden') {
-            $field->form_field_type_id = 12;
+            $field->form_field_type_id = FormFieldType::HIDDEN->value;
             if ($field->value) {
               $field->hidden_field_value = $field->value;
             }

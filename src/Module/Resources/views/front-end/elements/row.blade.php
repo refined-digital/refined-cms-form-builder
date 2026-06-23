@@ -15,7 +15,7 @@
     if ($field->show_label && $field->label_position == 2) {
         $fieldClasses[] = 'form__row--floating-label';
     }
-    if ($field->form_field_type_id == 19) {
+    if ($field->form_field_type_id == \RefinedDigital\FormBuilder\Module\Enums\FormFieldType::STATIC->value) {
         $fieldClasses[] = 'form__row--static';
     }
 
@@ -37,7 +37,7 @@
         $dataAttrs .= ' data-fb-error="'.htmlspecialchars($field->error_message, ENT_QUOTES).'"';
     }
     // gibberish opt-out flag for Text/Textarea
-    if (in_array($field->form_field_type_id, [1, 2])
+    if (in_array($field->form_field_type_id, [\RefinedDigital\FormBuilder\Module\Enums\FormFieldType::TEXT->value, \RefinedDigital\FormBuilder\Module\Enums\FormFieldType::TEXTAREA->value])
         && isset($field->settings->gibberish_check) && $field->settings->gibberish_check === false) {
         $dataAttrs .= ' data-fb-gibberish="0"';
     }
@@ -46,7 +46,7 @@
     // so the front-end validates + ticks the live checklist; the same rule set
     // is enforced server-side via PasswordStrength.
     $passwordRules = [];
-    if (in_array($field->form_field_type_id, [10, 11])
+    if (in_array($field->form_field_type_id, [\RefinedDigital\FormBuilder\Module\Enums\FormFieldType::PASSWORD->value, \RefinedDigital\FormBuilder\Module\Enums\FormFieldType::PASSWORD_CONFIRM->value])
         && !empty($field->settings->strong_password)) {
         $passwordRules = \RefinedDigital\FormBuilder\Module\Support\PasswordRules::active();
         if ($passwordRules) {

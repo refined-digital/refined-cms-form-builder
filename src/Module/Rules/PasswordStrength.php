@@ -15,7 +15,7 @@ use RefinedDigital\FormBuilder\Module\Support\PasswordRules;
 class PasswordStrength implements ValidationRule
 {
     public function __construct(
-        protected ?string $label = null
+        protected readonly ?string $label = null
     ) {}
 
     public function validate(string $attribute, mixed $value, Closure $fail): void

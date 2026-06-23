@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Http;
 class ReCaptcha implements ValidationRule
 {
     public function __construct(
-        protected string $action = 'submit'
+        protected readonly string $action = 'submit'
     ) {}
 
     public function validate(string $attribute, mixed $value, Closure $fail): void

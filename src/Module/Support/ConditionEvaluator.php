@@ -15,7 +15,7 @@ class ConditionEvaluator
      * @param object $field    the FormField (reads visibility_rules)
      * @param array  $data     submitted request data (keyed by field<id>)
      */
-    public static function isHidden($field, array $data): bool
+    public static function isHidden(mixed $field, array $data): bool
     {
         $rules = $field->visibility_rules ?? null;
         if (is_string($rules)) {

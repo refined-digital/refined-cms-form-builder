@@ -27,7 +27,7 @@
           'selectFieldsOverride' => $selectFieldsOverride
         ]
       @endphp
-      @if ($field->form_field_type_id == 11)
+      @if ($field->form_field_type_id == \RefinedDigital\FormBuilder\Module\Enums\FormFieldType::PASSWORD_CONFIRM->value)
         {!! view('formBuilder::front-end.elements.row', $rowData) !!}
         @php
           $rowData['field']->name = 'Confirmation';

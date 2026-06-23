@@ -16,20 +16,20 @@
 
         <div class="fb-field">
           <label class="fb-field__label">Recipient Emails <span class="fb-field__req">*</span></label>
-          <rd-form-email :field="{ name: 'to' }" :value="model.to" v-model="model.to"></rd-form-email>
+          <rd-form-email :field="{ name: 'to' }" :value="model.to" :fields="emailFields" v-model="model.to"></rd-form-email>
           <p v-if="errors.to" class="fb-field__note fb-field__note--error">{{ errors.to }}</p>
-          <p v-else class="fb-field__note">Email addresses who will receive this email notification.</p>
+          <p v-else class="fb-field__note">Email addresses who will receive this notification. You can also pick an email field — its submitted value is used when the form is sent.</p>
         </div>
 
         <div class="fb-field">
           <label class="fb-field__label">CC</label>
-          <rd-form-email :field="{ name: 'cc' }" :value="model.cc" v-model="model.cc"></rd-form-email>
+          <rd-form-email :field="{ name: 'cc' }" :value="model.cc" :fields="emailFields" v-model="model.cc"></rd-form-email>
           <p class="fb-field__note">Email addresses who will receive a CC of this notification.</p>
         </div>
 
         <div class="fb-field">
           <label class="fb-field__label">BCC</label>
-          <rd-form-email :field="{ name: 'bcc' }" :value="model.bcc" v-model="model.bcc"></rd-form-email>
+          <rd-form-email :field="{ name: 'bcc' }" :value="model.bcc" :fields="emailFields" v-model="model.bcc"></rd-form-email>
           <p class="fb-field__note">Email addresses who will receive a BCC of this notification.</p>
         </div>
 
