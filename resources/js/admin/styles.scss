@@ -75,6 +75,23 @@ $fb-radius: 6px;
     color: $fb-muted;
   }
 
+  &__alert {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-bottom: 14px;
+    padding: 12px 14px;
+    border: 1px solid $fb-red;
+    border-radius: $fb-radius;
+    background: rgba(226, 72, 61, .07);
+    color: $fb-text;
+    font-size: 13px;
+
+    > i { color: $fb-red; margin-top: 2px; }
+    strong { display: block; margin-bottom: 4px; }
+    ul { margin: 0; padding-left: 16px; }
+  }
+
   &__list { display: flex; flex-direction: column; gap: 4px; }
 
   // give an empty canvas a clear drop target for the first dragged field
@@ -137,6 +154,12 @@ $fb-radius: 6px;
     background: $fb-bg;
     .fb-row__actions { opacity: 1; }
     .fb-row__handle { opacity: 1; }
+  }
+
+  &--error {
+    border-color: $fb-red;
+    background: rgba(226, 72, 61, .05);
+    &:hover { border-color: $fb-red; }
   }
 
   &__handle {
@@ -234,6 +257,13 @@ $fb-radius: 6px;
 
 // ---- Palette ----
 .fb-palette {
+  // stick to the top while the canvas scrolls, so fields stay draggable on
+  // long forms. cap the height and scroll internally if the palette is tall.
+  position: sticky;
+  top: 20px;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+
   &__group { margin-bottom: 22px; }
 
   &__heading {

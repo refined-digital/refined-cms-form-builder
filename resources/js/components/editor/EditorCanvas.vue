@@ -7,6 +7,16 @@
         Click or drag a field from the palette on the right to start building your form.
       </p>
 
+      <div v-if="groupErrors.messages.length" class="fb-canvas__alert">
+        <i class="fas fa-exclamation-triangle"></i>
+        <div>
+          <strong>Field group problem</strong>
+          <ul>
+            <li v-for="(msg, i) in groupErrors.messages" :key="i">{{ msg }}</li>
+          </ul>
+        </div>
+      </div>
+
       <draggable
         :model-value="fields"
         :group="{ name: 'fb-fields', pull: true, put: true }"
@@ -20,6 +30,7 @@
           <editor-field-row
             :field="element"
             :type-meta="typeMeta(element.form_field_type_id)"
+            :has-error="groupErrors.badIds.has(element.id)"
             @edit="$emit('edit-field', element)"
             @delete="$emit('delete-field', element)"
           />
@@ -41,6 +52,7 @@
 <script>
 import draggable from 'vuedraggable';
 import EditorFieldRow from './EditorFieldRow.vue';
+import { validateGroups } from '../../lib/fieldTypes';
 
 export default {
   name: 'EditorCanvas',
@@ -52,6 +64,11 @@ export default {
     loading: { type: Boolean, default: false },
   },
   emits: ['reorder', 'edit-field', 'edit-submit', 'delete-field', 'add-field-at'],
+  computed: {
+    groupErrors() {
+      return validateGroups(this.fields);
+    },
+  },
   methods: {
     typeMeta(id) {
       return this.fieldTypes.find((t) => t.id === Number(id)) || {};

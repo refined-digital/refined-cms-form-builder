@@ -1,5 +1,5 @@
 <template>
-  <div class="fb-row" :class="{ 'fb-row--structural': isStructural }" @click="$emit('edit')">
+  <div class="fb-row" :class="{ 'fb-row--structural': isStructural, 'fb-row--error': hasError }" @click="$emit('edit')">
     <span class="fb-row__handle" title="Drag to reorder" @click.stop>
       <i class="fas fa-grip-vertical"></i>
     </span>
@@ -50,6 +50,7 @@ export default {
   props: {
     field: { type: Object, required: true },
     typeMeta: { type: Object, default: () => ({}) },
+    hasError: { type: Boolean, default: false },
   },
   emits: ['edit', 'delete'],
   computed: {

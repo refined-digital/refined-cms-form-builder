@@ -41,6 +41,46 @@ export const FILE_TYPES = [TYPE.FILE, TYPE.FILES];
 // structural fields that don't collect input
 export const STRUCTURAL_TYPES = [TYPE.GROUP_START, TYPE.GROUP_END, TYPE.STATIC, TYPE.HIDDEN];
 
+/**
+ * Validate field-group markers (Group Start/End) in field order. Groups can't
+ * nest and a Start must always be closed by an End that comes after it.
+ * Returns { messages: string[], badIds: Set<number> } — empty messages = valid.
+ */
+export function validateGroups(fields) {
+  const messages = [];
+  const badIds = new Set();
+  let openStart = null; // the currently-open Group Start field, or null
+
+  fields.forEach((f) => {
+    const type = Number(f.form_field_type_id);
+
+    if (type === TYPE.GROUP_START) {
+      if (openStart) {
+        // a second Start before the first was closed
+        messages.push('A group is already open — close it with a Group End before starting another.');
+        badIds.add(openStart.id);
+        badIds.add(f.id);
+      }
+      openStart = f;
+    } else if (type === TYPE.GROUP_END) {
+      if (!openStart) {
+        // an End with no matching Start before it
+        messages.push('A Group End has no matching Group Start before it.');
+        badIds.add(f.id);
+      } else {
+        openStart = null; // closed cleanly
+      }
+    }
+  });
+
+  if (openStart) {
+    messages.push('A Group Start is missing its Group End. Add a Group End after it, or remove the Group Start.');
+    badIds.add(openStart.id);
+  }
+
+  return { messages, badIds };
+}
+
 export const VISIBILITY_OPTIONS = [
   { value: 'visible', label: 'Visible' },
   { value: 'hidden', label: 'Hidden' },
