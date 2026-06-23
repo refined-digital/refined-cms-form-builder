@@ -1,3 +1,5 @@
+<div class="form__form-error" data-fb-form-error hidden role="alert" aria-live="assertive"></div>
+
 <div class="form__row form__row--buttons">
   {!! Honeypot::generate('hname', 'htime') !!}
   <button type="submit" class="button" data-fb-submit disabled>

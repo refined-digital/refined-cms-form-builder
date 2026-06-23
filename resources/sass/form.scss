@@ -13,6 +13,18 @@
   margin-top: 4px;
 }
 
+// form-level error (honeypot/too-fast, recaptcha, server failure) shown above
+// the submit button when there's no field to attach the error to
+.form__form-error {
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  border: 1px solid #e2483d;
+  border-radius: 4px;
+  background: rgba(226, 72, 61, .07);
+  color: #e2483d;
+  font-size: 14px;
+}
+
 .button--loading {
   opacity: .7;
   pointer-events: none;

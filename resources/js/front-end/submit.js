@@ -10,8 +10,26 @@ const ERROR_CLASS = 'form__control--error';
 const ROW_ERROR_CLASS = 'form__row--has-error';
 const MSG_CLASS = 'form__error';
 
+// shown when the submission fails for a reason that isn't a per-field error
+// (honeypot/too-fast, recaptcha, 500s, network) — those have no input to attach to.
+const GENERIC_ERROR = 'Sorry, your submission could not be sent. Please try again.';
+
 function csrfToken() {
   return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+}
+
+function showFormError(form, message) {
+  const box = form.querySelector('[data-fb-form-error]');
+  if (!box) return;
+  box.textContent = message;
+  box.hidden = false;
+}
+
+function clearFormError(form) {
+  const box = form.querySelector('[data-fb-form-error]');
+  if (!box) return;
+  box.textContent = '';
+  box.hidden = true;
 }
 
 function setLoading(form, loading) {
@@ -21,13 +39,26 @@ function setLoading(form, loading) {
   btn.disabled = loading;
 }
 
+// map each server error onto its field row. Returns true if EVERY error mapped
+// to a visible field; false if any error couldn't be shown on a field (honeypot,
+// recaptcha, etc.) so the caller can fall back to a form-level message.
 function applyServerErrors(form, errors) {
-  Object.entries(errors || {}).forEach(([key, messages]) => {
-    // key may be field12 or field12.0 etc.
+  const entries = Object.entries(errors || {});
+  if (!entries.length) return false;
+
+  let allMapped = true;
+  entries.forEach(([key, messages]) => {
+    // key may be field12 or field12.0 etc. only field* keys are real inputs;
+    // hname/htime/_captcha are anti-spam checks with no visible field.
     const base = key.split('.')[0];
-    const el = form.querySelector(`[name="${base}"], [name="${base}[]"]`);
+    const el = base.startsWith('field')
+      ? form.querySelector(`[name="${base}"], [name="${base}[]"]`)
+      : null;
     const row = el?.closest('.form__row');
-    if (!el || !row) return;
+    if (!el || !row) {
+      allMapped = false;
+      return;
+    }
     el.classList.add(ERROR_CLASS);
     row.classList.add(ROW_ERROR_CLASS);
     let msg = row.querySelector(`.${MSG_CLASS}`);
@@ -38,6 +69,8 @@ function applyServerErrors(form, errors) {
     }
     msg.textContent = Array.isArray(messages) ? messages[0] : messages;
   });
+
+  return allMapped;
 }
 
 function handleSuccess(form, data) {
@@ -73,6 +106,7 @@ async function postForm(form) {
 
 export async function submitForm(form) {
   setLoading(form, true);
+  clearFormError(form);
   try {
     let res = await postForm(form);
 
@@ -90,18 +124,28 @@ export async function submitForm(form) {
     }
 
     if (res.status === 422) {
-      const data = await res.json();
-      applyServerErrors(form, data.errors || {});
+      const data = await res.json().catch(() => ({}));
+      const allMapped = applyServerErrors(form, data.errors || {});
+      // anything that didn't land on a field (honeypot/too-fast, recaptcha, or
+      // no field errors at all) gets a friendly form-level message
+      if (!allMapped) {
+        showFormError(form, GENERIC_ERROR);
+      }
       return { ok: false, status: 422 };
     }
 
     if (!res.ok) {
+      showFormError(form, GENERIC_ERROR);
       return { ok: false, status: res.status };
     }
 
     const data = await res.json().catch(() => ({}));
     handleSuccess(form, data);
     return { ok: true, data };
+  } catch (e) {
+    // network / unexpected failure
+    showFormError(form, GENERIC_ERROR);
+    return { ok: false, status: 0 };
   } finally {
     setLoading(form, false);
   }
