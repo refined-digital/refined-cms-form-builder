@@ -98,6 +98,20 @@
               <option value="image_document">Image or Document</option>
             </select>
           </div>
+
+          <template v-if="isPasswordField">
+            <div class="fb-field">
+              <label class="fb-field__label">Require a strong password</label>
+              <toggle v-model="strongPassword" />
+              <p class="fb-field__note">Enforce the strong-password rules configured for this site.</p>
+            </div>
+
+            <div v-if="strongPassword" class="fb-field">
+              <label class="fb-field__label">Show requirements under the field</label>
+              <toggle v-model="showPasswordRules" />
+              <p class="fb-field__note">Displays the rules as a checklist that ticks off as the visitor types.</p>
+            </div>
+          </template>
         </div>
 
         <!-- APPEARANCE -->
@@ -216,6 +230,9 @@ export default {
     isGibberishApplicable() {
       return this.typeId === TYPE.TEXT || this.typeId === TYPE.TEXTAREA;
     },
+    isPasswordField() {
+      return this.typeId === TYPE.PASSWORD || this.typeId === TYPE.PASSWORD_CONFIRM;
+    },
     mergeFieldVisible() {
       return this.integrationsEnabled;
     },
@@ -236,6 +253,14 @@ export default {
     fileTypes: {
       get() { return this.model.settings?.file_types || ''; },
       set(val) { this.ensureSettings(); this.model.settings.file_types = val; },
+    },
+    strongPassword: {
+      get() { return !!this.model.settings?.strong_password; },
+      set(val) { this.ensureSettings(); this.model.settings.strong_password = !!val; },
+    },
+    showPasswordRules: {
+      get() { return !!this.model.settings?.show_password_rules; },
+      set(val) { this.ensureSettings(); this.model.settings.show_password_rules = !!val; },
     },
   },
   methods: {

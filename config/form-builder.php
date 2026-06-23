@@ -290,6 +290,15 @@ return [
     // the CSV export stays reliable).
     'queue_emails' => true,
 
+    // notification email branding. Passed through to the core email template at
+    // send time (so core stays decoupled from this config). accent_colour tints
+    // the top bar / labels; logo_url, if set, replaces the site-name wordmark
+    // (must be an absolute URL — email clients can't resolve relative paths).
+    'email' => [
+        'accent_colour' => '#1f2937',
+        'logo_url'      => null,
+    ],
+
     // reCAPTCHA v3 score threshold (Phase 9). Below this is rejected as a bot.
     'recaptcha_threshold' => 0.5,
 
@@ -299,5 +308,52 @@ return [
         'min_length' => 8,
         'min_vowel_ratio' => 0.15,
         'max_consonant_run' => 5,
+    ],
+
+    // Strong-password rules. A password field opts in via its 'Require a strong
+    // password' setting; these rules then REPLACE the default min:5 and are
+    // enforced front + back. Each rule's `enabled` toggles it; `label` is shown
+    // in the live checklist under the field. Patterns are JS-flavour regex
+    // (no delimiters) so the same source drives PHP (preg) and the browser.
+    'password' => [
+        'min_length' => [
+            'enabled' => true,
+            'value'   => 8,
+            'label'   => 'At least :value characters',
+        ],
+        'max_length' => [
+            'enabled' => false,
+            'value'   => 64,
+            'label'   => 'No more than :value characters',
+        ],
+        'uppercase' => [
+            'enabled' => true,
+            'pattern' => '[A-Z]',
+            'label'   => 'An uppercase letter',
+        ],
+        'lowercase' => [
+            'enabled' => true,
+            'pattern' => '[a-z]',
+            'label'   => 'A lowercase letter',
+        ],
+        'number' => [
+            'enabled' => true,
+            'pattern' => '[0-9]',
+            'label'   => 'A number',
+        ],
+        'special' => [
+            'enabled' => true,
+            'pattern' => '[^A-Za-z0-9]',
+            'label'   => 'A special character',
+        ],
+        'no_spaces' => [
+            'enabled' => false,
+            'label'   => 'No spaces',
+        ],
+
+        // arbitrary extra rules: each { enabled, pattern, label }
+        'custom' => [
+            // ['enabled' => true, 'pattern' => '...', 'label' => '...'],
+        ],
     ],
 ];
