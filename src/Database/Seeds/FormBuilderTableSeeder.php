@@ -30,6 +30,19 @@ class FormBuilderTableSeeder extends Seeder
             'redirect_page' => '/thank-you',
         ]);
 
+        // seed a default email notification for the form
+        \DB::table('form_email_notifications')->insert([
+            'created_at' => Carbon::now(),
+            'updated_at' => Carbon::now(),
+            'form_id'    => 1,
+            'position'   => 0,
+            'active'     => 1,
+            'name'       => 'Admin Notification',
+            'to'         => 'matthias@refineddigital.co.nz',
+            'subject'    => 'A new form submission from "[Form Name]"',
+            'content'    => '<p>You have a new [Form Name] submission</p><p>[[fields]]</p>',
+        ]);
+
         // now insert the fields
         $fields = [
             ['form_id' => 1, 'form_field_type_id' => 1, 'active' => 1, 'show_label' => 0, 'position' => 0, 'name' => 'First Name',  'placeholder' => 'First Name',    'required' => 1],
