@@ -23,18 +23,9 @@
   </div><!-- / form -->
 @endif
 
-@php
-  if (!session()->has('loaded_forms')) {
-    session()->put('loaded_forms', []);
-  }
-@endphp
-
-@if (!in_array($form->id, session()->get('loaded_forms')))
-  @php
-    session()->push('loaded_forms', $form->id);
-  @endphp
-
-  @include('formBuilder::front-end.includes.scripts')
-  @include('formBuilder::front-end.includes.styles')
-@endif
+{{-- assets self-load here (each include is @once-guarded for multiple forms
+     per page). previously gated by a session flag, which broke the form on the
+     second page view because the flag persisted across requests. --}}
+@include('formBuilder::front-end.includes.scripts')
+@include('formBuilder::front-end.includes.styles')
 
