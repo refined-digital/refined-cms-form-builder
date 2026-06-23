@@ -2,7 +2,9 @@
 
 namespace RefinedDigital\FormBuilder\Module\Http\Requests;
 
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use RefinedDigital\FormBuilder\Module\Enums\FormFieldType;
 use RefinedDigital\FormBuilder\Module\Rules\ReCaptcha;
 use RefinedDigital\FormBuilder\Module\Rules\Gibberish;
@@ -160,5 +162,23 @@ class FormSubmitRequest extends FormRequest
     public function messages(): array
     {
         return $this->customMessages;
+    }
+
+    /**
+     * Force a 422 JSON response for AJAX submits. The host app may restrict the
+     * framework's automatic JSON error rendering (e.g. shouldRenderJsonWhen
+     * limited to api/* routes), which would otherwise redirect our front-end
+     * fetch instead of returning errors it can display.
+     */
+    protected function failedValidation(Validator $validator): void
+    {
+        if ($this->expectsJson()) {
+            throw new HttpResponseException(response()->json([
+                'message' => 'The given data was invalid.',
+                'errors' => $validator->errors()->messages(),
+            ], 422));
+        }
+
+        parent::failedValidation($validator);
     }
 }

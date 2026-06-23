@@ -64,7 +64,7 @@
     <div class="form__note">{{ $field->note }}</div>
   @endif
 
-  @if (str_contains('formBuilder::', $field->value) && view()->exists($field->view))
+  @if (is_string($field->view) && str_contains($field->view, '::') && view()->exists($field->view))
     @include($field->view)
   @else
     {!! $field->renderView($defaultFields, $selectFieldsOverride) !!}
