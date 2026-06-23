@@ -105,8 +105,14 @@ blade;
         $args = [
             'class'    => 'form__control',
             'id'       => 'form__field--'.$field->id,
-            'required' => 'required',
         ];
+
+        // only genuinely-required fields get the HTML required attribute, so the
+        // front-end validator (and native browser validation) don't treat every
+        // field as mandatory
+        if ($field->required) {
+            $args['required'] = 'required';
+        }
 
         if ($field->placeholder) {
             $args['placeholder'] = $field->placeholder;
@@ -133,6 +139,16 @@ blade;
     public function rules(): array
     {
         return [];
+    }
+
+    /**
+     * Rules that still apply when the field is OPTIONAL but filled in (format
+     * checks like email/mimes). Defaults to rules(); a class overrides to []
+     * for presence-style rules that only make sense when required (e.g. not0).
+     */
+    public function optionalRules(): array
+    {
+        return $this->rules();
     }
 
     /** ['rule' => 'message']; the caller keys them onto field{id}.rule. */

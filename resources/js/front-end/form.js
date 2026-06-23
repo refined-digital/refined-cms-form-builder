@@ -23,14 +23,16 @@ function evaluateSubmitState(form, validator) {
   const controls = validator.controls();
   let enable;
 
+  // use the pure isValid() check so toggling the submit button never paints
+  // errors on fields the user hasn't touched yet
   if (hasRequiredFields(form)) {
     enable = controls
       .filter((el) => el.hasAttribute('required') || el.dataset.fbRequired === '1')
-      .every((el) => validator.validateControl(el));
+      .every((el) => validator.isValid(el));
   } else {
     enable = controls.some((el) => {
       const v = (el.value ?? '').toString().trim();
-      return v !== '' && validator.validateControl(el);
+      return v !== '' && validator.isValid(el);
     });
   }
 

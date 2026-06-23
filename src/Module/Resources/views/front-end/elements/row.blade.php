@@ -41,6 +41,19 @@
         && isset($field->settings->gibberish_check) && $field->settings->gibberish_check === false) {
         $dataAttrs .= ' data-fb-gibberish="0"';
     }
+
+    // strong-password rules (types 10/11 that opted in). Emit the active rules
+    // so the front-end validates + ticks the live checklist; the same rule set
+    // is enforced server-side via PasswordStrength.
+    $passwordRules = [];
+    if (in_array($field->form_field_type_id, [10, 11])
+        && !empty($field->settings->strong_password)) {
+        $passwordRules = \RefinedDigital\FormBuilder\Module\Support\PasswordRules::active();
+        if ($passwordRules) {
+            $dataAttrs .= ' data-fb-password-rules="'.htmlspecialchars(json_encode($passwordRules), ENT_QUOTES).'"';
+        }
+    }
+    $showPasswordRules = $passwordRules && !empty($field->settings->show_password_rules);
 @endphp
 <div class="{{ implode(' ', $fieldClasses) }}"{!! $dataAttrs !!}{!! $conditionAttr !!}{!! $field->required ? ' data-required-label="'.$field->name.'"' : ' '!!}>
   @if ($field->show_label && $field->label_position == 1)
@@ -55,6 +68,17 @@
     @include($field->view)
   @else
     {!! $field->renderView($defaultFields, $selectFieldsOverride) !!}
+  @endif
+
+  @if ($showPasswordRules)
+    <ul class="form__password-rules" data-fb-password-checklist>
+      @foreach ($passwordRules as $rule)
+        <li class="form__password-rule" data-fb-rule="{{ $rule['key'] }}">
+          <span class="form__password-rule-icon" aria-hidden="true"></span>
+          {{ $rule['label'] }}
+        </li>
+      @endforeach
+    </ul>
   @endif
 
   @if ($field->show_label && ($field->label_position == 0 || $field->label_position == 2))

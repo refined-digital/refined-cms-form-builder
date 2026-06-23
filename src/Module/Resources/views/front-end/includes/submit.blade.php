@@ -16,9 +16,7 @@
             stroke-width="4"
           ></circle>
         </svg>
-
       </span>
-      <span class="form-button__loading-text">{{ $form->loadingText }}</span>
     </span>
   </button>
 </div>

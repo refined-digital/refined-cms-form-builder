@@ -6,6 +6,7 @@
 // use core's legacy FormValidate.js/FormBuilder.js for builder forms.
 import { z } from 'zod';
 import { isFieldConditionallyHidden } from './conditions';
+import { passwordRulesFor, firstPasswordFailure, updatePasswordChecklist } from './passwordRules';
 
 const ERROR_CLASS = 'form__control--error';
 const ROW_ERROR_CLASS = 'form__row--has-error';
@@ -19,8 +20,13 @@ function schemaForControl(el, label) {
 
   let schema = z.string();
 
+  // format checks skip an empty value (an optional field left blank is fine);
+  // the required check below is what enforces presence.
   if (type === 'email') {
-    schema = z.string().email(`${name} must be a valid email address.`);
+    schema = z.string().refine(
+      (v) => v === '' || z.string().email().safeParse(v).success,
+      `${name} must be a valid email address.`,
+    );
   } else if (type === 'number' || el.inputMode === 'decimal') {
     schema = z.string().refine((v) => v === '' || !Number.isNaN(Number(v)), `${name} must be a number.`);
   }
@@ -28,6 +34,15 @@ function schemaForControl(el, label) {
   const min = el.getAttribute('minlength') || el.dataset.fbMin;
   if (min) {
     schema = schema.refine((v) => v === '' || v.length >= Number(min), `${name} must be at least ${min} characters.`);
+  }
+
+  // strong-password rules (when the field opted in) — invalid until all pass
+  const pwRules = passwordRulesFor(el);
+  if (pwRules.length) {
+    schema = schema.refine(
+      (v) => v === '' || firstPasswordFailure(pwRules, v) === null,
+      (v) => ({ message: `${name} is not strong enough — ${firstPasswordFailure(pwRules, v)}.` }),
+    );
   }
 
   if (required) {
@@ -93,10 +108,20 @@ export function createValidator(form) {
     return row?.getAttribute('data-required-label') || row?.querySelector('.form__label')?.textContent?.trim() || 'This field';
   };
 
-  // validate one control; returns true if valid
+  // pure validity check — NO UI side effects. used by the submit-enable gate so
+  // it can run on load without painting errors on untouched fields.
+  const isValid = (el) => {
+    const row = getRow(el);
+    if (el.disabled || (row && (isFieldConditionallyHidden(row) || row.style.display === 'none'))) {
+      return true;
+    }
+    return schemaForControl(el, labelFor(el)).safeParse(controlValue(el)).success;
+  };
+
+  // validate one control AND reflect the result in the UI (border + message).
+  // only call from interaction (blur / touched input) or submit.
   const validateControl = (el) => {
     const row = getRow(el);
-    // skip controls hidden by conditional logic or otherwise hidden/disabled
     if (el.disabled || (row && (isFieldConditionallyHidden(row) || row.style.display === 'none'))) {
       clearError(el);
       return true;
@@ -133,8 +158,10 @@ export function createValidator(form) {
 
   form.addEventListener('input', (e) => {
     const el = e.target;
+    // tick the password checklist live, before the field is "touched"
+    updatePasswordChecklist(el);
     if (touched.has(el)) validateControl(el);
   });
 
-  return { validateAll, validateControl, controls };
+  return { validateAll, validateControl, isValid, controls };
 }

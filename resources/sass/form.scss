@@ -18,6 +18,55 @@
   pointer-events: none;
 }
 
+// live strong-password checklist (ticks off as the visitor types)
+.form__password-rules {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  font-size: 13px;
+}
+
+.form__password-rule {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #888;
+  padding: 2px 0;
+  transition: color .15s;
+
+  &-icon {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    position: relative;
+    flex: 0 0 auto;
+  }
+
+  &--met {
+    color: #1b8a4b;
+
+    .form__password-rule-icon {
+      background: #1b8a4b;
+      border-color: #1b8a4b;
+
+      // a small check mark
+      &::after {
+        content: '';
+        position: absolute;
+        left: 4px;
+        top: 1px;
+        width: 4px;
+        height: 7px;
+        border: solid #fff;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
+      }
+    }
+  }
+}
+
 .form {
   &__payment-gateway {
     .form__label {
@@ -52,16 +101,22 @@
   }
 }
 
+// the spinner is hidden until the button enters its loading state
+.form-button__loading {
+  display: none;
+}
+
 .button--loading {
   .form-button {
     &__loading {
-      display: flex;
+      display: inline-flex;
       align-items: center;
-      gap: 8px;
+      justify-content: center;
 
       &-icon {
         width: 16px;
         height: 16px;
+        line-height: 0;
       }
     }
     &__text {

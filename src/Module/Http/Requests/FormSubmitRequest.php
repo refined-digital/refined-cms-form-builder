@@ -86,6 +86,16 @@ class FormSubmitRequest extends FormRequest
                         }
                     }
                 }
+            } elseif ($instance) {
+                // optional field: still validate its format when filled (e.g. an
+                // optional email must be a valid email), but an empty value is OK
+                $optional = $instance->optionalRules();
+                if ($optional) {
+                    $args[$name] = array_merge(['nullable'], $optional);
+                    foreach ($instance->messages() as $rule => $message) {
+                        $this->customMessages[$name.'.'.$rule] = $message;
+                    }
+                }
             }
 
             // gibberish anti-spam — the field class declares whether it applies

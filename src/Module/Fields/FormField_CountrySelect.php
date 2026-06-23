@@ -15,6 +15,13 @@ class FormField_CountrySelect extends FormField {
         return ['not0'];
     }
 
+    // not0 is a presence check ("you picked a country") — meaningless on an
+    // optional country left at the default, so it doesn't apply when optional.
+    public function optionalRules(): array
+    {
+        return [];
+    }
+
     public function messages(): array
     {
         return ['not0' => 'The '.$this->field->name.' field is required.'];
