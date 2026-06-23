@@ -14,6 +14,16 @@ Route::namespace('FormBuilder\Module\Http\Controllers')
                     'uses'  => 'FormBuilderController@export'
                 ]);
 
+                // visual submissions browser (list + grouped detail)
+                Route::get('{form}/submissions', [
+                    'as'    => 'form-builder.submissions',
+                    'uses'  => 'FormBuilderController@submissions'
+                ]);
+                Route::get('{form}/submissions/{token}', [
+                    'as'    => 'form-builder.submissions.show',
+                    'uses'  => 'FormBuilderController@submissionShow'
+                ]);
+
                 // JSON API backing the visual editor. {form} is route-model bound
                 // to the Form model. Inherits the admin middleware group (web/auth).
                 Route::prefix('{form}/api')

@@ -42,6 +42,7 @@ class FormBuilderController extends CoreController
         $table->sortable = false;
 
         $table->extraActions = [
+            (object) [ 'route' => 'refined.form-builder.submissions', 'name' => 'Submissions', 'icon' => 'far fa-list-alt'],
             (object) [ 'route' => 'refined.form-builder.duplicate', 'name' => 'Duplicate', 'icon' => 'far fa-clone'],
             (object) [ 'route' => 'refined.form-builder.export', 'name' => 'Export', 'icon' => 'far fa-file-excel'],
         ];
@@ -152,6 +153,42 @@ class FormBuilderController extends CoreController
         }
 
         return redirect()->back()->with('status', 'Failed to generate export')->with('fail', 1);
+    }
+
+    /**
+     * Visual list of a form's submissions, grouped one entry per form-fill.
+     */
+    public function submissions(Form $form)
+    {
+        return view('formBuilder::forms.submissions.index', [
+            'heading'     => $this->heading,
+            'form'        => $form,
+            'submissions' => $this->formBuilderRepository->groupedSubmissions($form),
+            'backRoute'   => route('refined.form-builder.index'),
+        ]);
+    }
+
+    /**
+     * Detail of a single grouped submission: the form's field values plus the
+     * per-notification delivery details.
+     */
+    public function submissionShow(Form $form, $token)
+    {
+        $submission = $this->formBuilderRepository->submissionGroup($form, $token);
+
+        if (!$submission) {
+            return redirect()
+                ->route('refined.form-builder.submissions', $form)
+                ->with('status', 'Submission not found')
+                ->with('fail', 1);
+        }
+
+        return view('formBuilder::forms.submissions.show', [
+            'heading'      => $this->heading,
+            'form'         => $form,
+            'submission'   => $submission,
+            'backRoute'    => route('refined.form-builder.submissions', $form),
+        ]);
     }
 
     /**

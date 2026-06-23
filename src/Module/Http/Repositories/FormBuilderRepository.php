@@ -217,7 +217,9 @@ class FormBuilderRepository extends CoreRepository
               'from' => 'from',
               'ip' => 'ip'
             ];
-            $hide = [10,11,19];
+            // match EmailRepository::formatFields skip list (passwords, static,
+            // hidden, group start/end) so export columns line up with the data
+            $hide = [10,11,12,19,22,23];
 
             // add in the field titles
             if ($form->fields && $form->fields->count()) {
@@ -268,6 +270,114 @@ class FormBuilderRepository extends CoreRepository
         }
 
         return false;
+    }
+
+    /**
+     * Submissions for a form, grouped into one entry per form-fill. A fill
+     * writes one EmailSubmission row per active notification, all sharing a
+     * `submission_group` token (legacy rows with no token group by their own id).
+     * Returns a Collection of objects: token, created_at, count, summary, rows.
+     */
+    public function groupedSubmissions($form)
+    {
+        if (!isset($form->id)) {
+            return collect();
+        }
+
+        $repo = new EmailRepository();
+        $submissions = $repo->getFormSubmissions($form->id)->sortByDesc('created_at');
+
+        $groups = [];
+        foreach ($submissions as $entry) {
+            $token = $entry->data->submission_group ?? ('id-'.$entry->id);
+
+            if (!isset($groups[$token])) {
+                $groups[$token] = (object) [
+                    'token'      => $token,
+                    'created_at' => $entry->created_at,
+                    'count'      => 0,
+                    'summary'    => $this->submissionSummary($entry, $form),
+                    'rows'       => [],
+                ];
+            }
+
+            $groups[$token]->count++;
+            $groups[$token]->rows[] = $entry;
+            // keep the earliest timestamp for the group
+            if ($entry->created_at < $groups[$token]->created_at) {
+                $groups[$token]->created_at = $entry->created_at;
+            }
+        }
+
+        return collect(array_values($groups))->sortByDesc('created_at')->values();
+    }
+
+    /**
+     * A single submission group (one form-fill) with its formatted field
+     * label/value pairs and the per-notification delivery details. Returns null
+     * if the token isn't found for this form.
+     */
+    public function submissionGroup($form, $token)
+    {
+        $group = $this->groupedSubmissions($form)->firstWhere('token', $token);
+        if (!$group) {
+            return null;
+        }
+
+        $repo = new EmailRepository();
+        $first = $group->rows[0];
+
+        // label => value pairs (reuses the same formatter as the CSV export)
+        $fields = isset($first->data->data)
+            ? $repo->formatFields((array) $first->data->data, $form)
+            : [];
+
+        // per-notification delivery meta (one entry per row in the group)
+        $notifications = [];
+        foreach ($group->rows as $row) {
+            $notifications[] = (object) [
+                'name'       => $row->data->notification_name ?? null,
+                'subject'    => $row->data->subject ?? null,
+                'to'         => $row->to,
+                'cc'         => $row->data->cc ?? null,
+                'bcc'        => $row->data->bcc ?? null,
+                'reply_to'   => $row->data->reply_to ?? null,
+                'from'       => $row->from,
+                'ip'         => $row->ip,
+                'created_at' => $row->created_at,
+            ];
+        }
+
+        return (object) [
+            'token'         => $token,
+            'created_at'    => $group->created_at,
+            'fields'        => $fields,
+            'notifications' => $notifications,
+        ];
+    }
+
+    /** A short one-line summary of a submission (first couple of field values). */
+    protected function submissionSummary($entry, $form)
+    {
+        if (!isset($entry->data->data)) {
+            return '';
+        }
+
+        $repo = new EmailRepository();
+        $fields = $repo->formatFields((array) $entry->data->data, $form);
+
+        $parts = [];
+        foreach ($fields as $field) {
+            $value = trim(strip_tags((string) $field->value));
+            if ($value !== '') {
+                $parts[] = $value;
+            }
+            if (count($parts) >= 2) {
+                break;
+            }
+        }
+
+        return implode(' — ', $parts);
     }
 
     public function getAllFields()
@@ -398,8 +508,14 @@ class FormBuilderRepository extends CoreRepository
         // (export reads $entry->data->data keyed by field<id>)
         $data = is_array($request) ? $request : $request->all();
 
+        // one token per form-fill so the admin can group the per-notification
+        // rows back into a single submission (no schema change — rides in `data`)
+        $submissionGroup = (string) \Illuminate\Support\Str::uuid();
+
         foreach ($notifications as $notification) {
             $settings = new \stdClass();
+            $settings->submission_group = $submissionGroup;
+            $settings->notification_name = $notification->name;
             $settings->to = $notification->to;
             $settings->subject = $repo->replaceTokens($notification->subject, $request, $form);
 
@@ -430,6 +546,10 @@ class FormBuilderRepository extends CoreRepository
             $settings->form_id = $form->id;
             $settings->data = $data;
             $settings->send_as_plain_text = false;
+
+            // branding for the email template (keeps core decoupled from this config)
+            $settings->email_accent = config('form-builder.email.accent_colour');
+            $settings->email_logo = config('form-builder.email.logo_url');
 
             $repo->send($settings, $queue);
         }
