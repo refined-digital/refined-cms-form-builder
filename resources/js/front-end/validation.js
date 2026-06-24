@@ -31,6 +31,13 @@ function schemaForControl(el, label) {
     schema = z.string().refine((v) => v === '' || !Number.isNaN(Number(v)), `${name} must be a number.`);
   }
 
+  const pattern = el.getAttribute('pattern');
+  if (pattern) {
+    // HTML pattern matches the whole value (implicitly anchored)
+    const re = new RegExp(`^(?:${pattern})$`);
+    schema = schema.refine((v) => v === '' || re.test(v), `${name} is not in the expected format.`);
+  }
+
   const min = el.getAttribute('minlength') || el.dataset.fbMin;
   if (min) {
     schema = schema.refine((v) => v === '' || v.length >= Number(min), `${name} must be at least ${min} characters.`);
@@ -156,11 +163,17 @@ export function createValidator(form) {
     }
   }, true);
 
+  // fields whose value has a format to satisfy (email, tel/pattern) validate
+  // live from the first keystroke, not just after a blur — so a wrong format
+  // surfaces while typing even on optional fields.
+  const validatesWhileTyping = (el) =>
+    (el.getAttribute('type') || '').toLowerCase() === 'email' || el.hasAttribute('pattern');
+
   form.addEventListener('input', (e) => {
     const el = e.target;
     // tick the password checklist live, before the field is "touched"
     updatePasswordChecklist(el);
-    if (touched.has(el)) validateControl(el);
+    if (touched.has(el) || validatesWhileTyping(el)) validateControl(el);
   });
 
   return { validateAll, validateControl, isValid, controls };
