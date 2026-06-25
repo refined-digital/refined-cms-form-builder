@@ -36,7 +36,7 @@
       <!-- OTHER TABS (filled in later phases) -->
       <behaviour-tab v-if="tab === 'behaviour'" :form="form" :fields="fields" @save="onFormSave" />
       <notifications-tab v-if="tab === 'notifications'" :form-id="form.id" :fields="fields" :api-base="apiBase" />
-      <integrations-tab v-if="tab === 'integrations'" :form-id="form.id" :api-base="apiBase" @changed="integrationsEnabled = $event" />
+      <integrations-tab v-if="tab === 'integrations'" :form-id="form.id" :fields="fields" :api-base="apiBase" @changed="integrationsEnabled = $event" />
       <settings-tab v-if="tab === 'settings'" :form="form" @save="onFormSave" />
     </div>
 

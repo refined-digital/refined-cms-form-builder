@@ -673,12 +673,53 @@ $fb-radius: 6px;
     .fb-field__label { margin: 0; }
   }
 
+  &__configure { white-space: nowrap; }
+
   &__body {
     padding: 16px;
     border-top: 1px solid $fb-border;
     display: flex;
     flex-direction: column;
     gap: 16px;
+  }
+
+  // draggable field list inside the config modal
+  &__fields {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  &__field {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border: 1px solid $fb-border;
+    border-radius: $fb-radius;
+    background: #fff;
+
+    &--synthetic { background: #f6f8fa; }
+
+    .fb-row__handle {
+      opacity: 1; // always visible here (the global rule hides it until row hover)
+      cursor: grab;
+      color: $fb-muted;
+      user-select: none;
+    }
+  }
+
+  &__field-name { flex: 1; }
+
+  &__field-tag {
+    margin-left: 6px;
+    font-size: 11px;
+    font-style: normal;
+    color: $fb-muted;
+    border: 1px solid $fb-border;
+    border-radius: 3px;
+    padding: 0 4px;
   }
 }
 

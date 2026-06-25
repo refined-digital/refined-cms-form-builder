@@ -16,49 +16,48 @@
           <span class="fb-integration__name">{{ integration.name }}</span>
           <span class="fb-integration__desc">{{ integration.description }}</span>
         </div>
+        <button
+          v-if="integration.enabled"
+          type="button"
+          class="button button--blue button--small fb-integration__configure"
+          @click="configuring = integration"
+        >Configure</button>
         <div class="fb-integration__toggle">
           <label class="fb-field__label">Enable</label>
           <toggle :model-value="integration.enabled ? 1 : 0" @update:model-value="setEnabled(integration, $event)" />
         </div>
       </div>
-
-      <div v-if="integration.enabled" class="fb-integration__body">
-        <div class="fb-field">
-          <label class="fb-field__label">Send Email Notifications</label>
-          <toggle :model-value="integration.send_email ? 1 : 0" @update:model-value="setSendEmail(integration, $event)" />
-          <p class="fb-field__note">Turn off to let this integration handle delivery instead of the form's notifications.</p>
-        </div>
-
-        <div v-for="setting in integration.settings" :key="setting.name" class="fb-field">
-          <label class="fb-field__label">
-            {{ setting.label }}<span v-if="setting.required" class="fb-field__req">*</span>
-          </label>
-          <select v-if="setting.type === 'select'" v-model="integration.config[setting.name]" class="fb-field__input" @change="save(integration)">
-            <option v-for="opt in setting.options" :key="opt.value ?? opt" :value="opt.value ?? opt">{{ opt.label ?? opt }}</option>
-          </select>
-          <input v-else v-model="integration.config[setting.name]" type="text" class="fb-field__input" @blur="save(integration)" />
-        </div>
-      </div>
     </div>
+
+    <integration-modal
+      v-if="configuring"
+      :integration="configuring"
+      :fields="fields"
+      @save="onModalSave"
+      @close="configuring = null"
+    />
   </div>
 </template>
 
 <script>
 import { createApi } from '../../lib/api';
 import Toggle from './controls/Toggle.vue';
+import IntegrationModal from './IntegrationModal.vue';
 
 export default {
   name: 'IntegrationsTab',
-  components: { Toggle },
+  components: { Toggle, IntegrationModal },
   props: {
     formId: { type: Number, required: true },
     apiBase: { type: String, required: true },
+    fields: { type: Array, default: () => [] },
   },
   emits: ['changed'],
   data() {
     return {
       api: createApi(this.apiBase),
       integrations: [],
+      configuring: null,
     };
   },
   async created() {
@@ -78,9 +77,10 @@ export default {
       integration.enabled = !!Number(val);
       this.save(integration);
     },
-    setSendEmail(integration, val) {
-      integration.send_email = !!Number(val);
-      this.save(integration);
+    onModalSave(payload) {
+      Object.assign(this.configuring, payload);
+      this.save(this.configuring);
+      this.configuring = null;
     },
     async save(integration) {
       try {
