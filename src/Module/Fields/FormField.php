@@ -183,6 +183,25 @@ blade;
         return false;
     }
 
+    /**
+     * The select's options with the field's placeholder prepended as an
+     * empty-valued first option.
+     *
+     * Without it a required select has no "nothing chosen" state that validation
+     * recognises: '' is the only value both Laravel's `required` and the
+     * front-end validator treat as empty — '0' is a present value and passes.
+     */
+    protected function optionsWithPlaceholder(): ?array
+    {
+        $options = $this->options();
+        if ($options === null || !$this->field->placeholder) {
+            return $options;
+        }
+
+        // union rather than array_merge: string keys must not be renumbered
+        return ['' => $this->field->placeholder] + $options;
+    }
+
     public function renderView(): string
     {
         $view = $this->resolveView($this->render());
@@ -198,7 +217,7 @@ blade;
 
         // selects built by the base render() read their options from scope
         if ($this->options() !== null) {
-            $with['options'] = $this->options();
+            $with['options'] = $this->optionsWithPlaceholder();
         }
 
         return view()

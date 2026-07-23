@@ -9,6 +9,13 @@ class FormField_CountrySelect extends FormField {
         return forms()->getCountries();
     }
 
+    // getCountries() already unshifts its own 'Please Select' (at key 0, hence the
+    // not0 rule below), so don't prepend the field's placeholder on top of it
+    protected function optionsWithPlaceholder(): ?array
+    {
+        return $this->options();
+    }
+
     public function rules(): array
     {
         // 'not0' is a validator extension registered by the core CMS provider

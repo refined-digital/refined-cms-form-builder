@@ -406,7 +406,19 @@ $fb-radius: 6px;
     &:disabled { background: $fb-bg; color: $fb-muted; }
   }
 
-  &__note { font-size: 12px; color: $fb-muted; margin: 6px 0 0; }
+  &__note {
+    font-size: 12px;
+    color: $fb-muted;
+    margin: 6px 0 0;
+
+    code {
+      font-size: 11px;
+      padding: 1px 4px;
+      border-radius: 3px;
+      background: $fb-bg;
+      border: 1px solid $fb-border;
+    }
+  }
 }
 
 // ---- Toggle ----

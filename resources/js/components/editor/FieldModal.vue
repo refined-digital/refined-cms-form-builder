@@ -30,7 +30,14 @@
           <div v-if="supportsPlaceholder" class="fb-field">
             <label class="fb-field__label">Placeholder</label>
             <input v-model="model.placeholder" type="text" class="fb-field__input" :disabled="labelPosition === 'floating'" />
-            <p class="fb-field__note">
+            <p v-if="isSelect" class="fb-field__note">
+              Added as the first option, with an empty value. Leave it set on a
+              <strong>Required</strong> select — an empty value is the only thing validation
+              treats as "nothing chosen". Don't add your own <em>Please select</em> option with
+              a value of <code>0</code>: <code>0</code> is a real answer and passes Required.
+              <span v-if="labelPosition === 'floating'">(Cleared automatically for floating labels.)</span>
+            </p>
+            <p v-else class="fb-field__note">
               Shown if the field doesn't have a value.
               <span v-if="labelPosition === 'floating'">(Cleared automatically for floating labels.)</span>
             </p>
@@ -220,6 +227,11 @@ export default {
     },
     isFileField() {
       return FILE_TYPES.includes(this.typeId);
+    },
+    // the placeholder renders as an empty-valued first option rather than a
+    // normal HTML placeholder, so its note reads differently
+    isSelect() {
+      return this.typeId === TYPE.SELECT;
     },
     isCustom() {
       return this.typeId === TYPE.CUSTOM;

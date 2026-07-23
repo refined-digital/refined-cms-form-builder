@@ -13,7 +13,7 @@
       <!-- lightweight input preview by type -->
       <component :is="previewTag" v-bind="previewAttrs" class="fb-row__preview" v-if="hasPreview">
         <template v-if="previewTag === 'select'">
-          <option>{{ field.placeholder || 'Select…' }}</option>
+          <option>{{ withRequiredMark(field.placeholder || 'Select…') }}</option>
           <option v-for="(opt, i) in previewOptions" :key="i">{{ opt }}</option>
         </template>
       </component>
@@ -96,10 +96,10 @@ export default {
       const attrs = { disabled: true };
       if (this.previewTag === 'input') {
         attrs.type = this.inputType;
-        attrs.placeholder = this.field.placeholder || '';
+        attrs.placeholder = this.withRequiredMark(this.field.placeholder || '');
       }
       if (this.previewTag === 'textarea') {
-        attrs.placeholder = this.field.placeholder || '';
+        attrs.placeholder = this.withRequiredMark(this.field.placeholder || '');
         attrs.rows = 3;
       }
       return attrs;
@@ -117,6 +117,20 @@ export default {
         case TYPE.FILES: return 'file';
         default: return 'text';
       }
+    },
+  },
+  methods: {
+    /**
+     * Editor-only required hint. A field whose label is hidden loses the label's
+     * asterisk with it, leaving nothing in the canvas to say it's mandatory — so
+     * mark the placeholder instead. Preview only: never saved, never rendered on
+     * the front end. Skipped when the admin has typed their own asterisk.
+     */
+    withRequiredMark(text) {
+      if (!Number(this.field.required) || this.showLabel || text.includes('*')) {
+        return text;
+      }
+      return text ? `${text} *` : '*';
     },
   },
 };
