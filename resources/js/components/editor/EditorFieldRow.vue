@@ -26,7 +26,7 @@
 
       <div v-else-if="isStructural" class="fb-row__structural">
         <i :class="['far', typeMeta.icon ? 'fas ' + typeMeta.icon : 'fa-square']"></i>
-        {{ typeMeta.name }}
+        {{ structuralLabel }}
       </div>
     </div>
 
@@ -66,6 +66,14 @@ export default {
     },
     isStructural() {
       return STRUCTURAL_TYPES.includes(this.typeId);
+    },
+    // hidden rows render no label or preview, so without the name every one of
+    // them looks identical in the canvas
+    structuralLabel() {
+      if (this.typeId === TYPE.HIDDEN && this.field.name) {
+        return `${this.typeMeta.name}: ${this.field.name}`;
+      }
+      return this.typeMeta.name;
     },
     optionInputType() {
       return this.typeId === TYPE.RADIO ? 'radio' : 'checkbox';

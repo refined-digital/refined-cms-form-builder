@@ -223,6 +223,10 @@ class FormBuilderApiController extends Controller
                 'icon'        => $integration['icon'],
                 'description' => $integration['description'],
                 'settings'    => $integration['settings'],   // declared custom fields
+                // Configure-modal shape, declared by the integration
+                'sortable'    => $integration['sortable'] ?? true,
+                'synthetic'   => $integration['synthetic'] ?? [],
+                'config_tab'  => $integration['config_tab'] ?? true,
                 'enabled'     => $row ? (bool) $row->enabled : false,
                 'send_email'  => $row ? (bool) $row->send_email : true,
                 'config'      => $row->config ?? new \stdClass(),

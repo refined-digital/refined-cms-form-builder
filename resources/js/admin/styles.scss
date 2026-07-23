@@ -454,7 +454,25 @@ $fb-radius: 6px;
   flex-direction: column;
   gap: 8px;
 
-  &__row { display: flex; gap: 8px; align-items: center; }
+  // draggable wraps the rows, so the column gap lives here rather than on .fb-options
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+
+    .fb-row__handle {
+      opacity: 1; // always visible here (the global rule hides it until row hover)
+      cursor: grab;
+      color: $fb-muted;
+      user-select: none;
+    }
+  }
 
   &__remove {
     appearance: none;

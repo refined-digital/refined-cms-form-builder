@@ -29,7 +29,10 @@ trait FieldType
 
     public function fieldOptions() : HasMany
     {
-        return $this->hasMany('RefinedDigital\FormBuilder\Module\Models\FormFieldOption', 'form_field_id');
+        // id is the tiebreaker for rows written before position was stored
+        return $this->hasMany('RefinedDigital\FormBuilder\Module\Models\FormFieldOption', 'form_field_id')
+            ->orderBy('position')
+            ->orderBy('id');
     }
 
     protected function getArrayableItems(array $values)

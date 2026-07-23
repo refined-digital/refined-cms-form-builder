@@ -140,11 +140,12 @@ class FormBuilderRepository extends CoreRepository
         // delete the form options
         FormFieldOption::whereFormFieldId($fieldId)->forceDelete();
 
-        // now add any, if there is any
+        // now add any, if there is any — array order is the display order
         if (is_array($options) && count($options)) {
-            foreach ($options as $option) {
+            foreach (array_values($options) as $position => $option) {
                 FormFieldOption::create([
                     'form_field_id' => $fieldId,
+                    'position'      => $position,
                     'value'         => $option['value'],
                     'label'         => $option['label'],
                 ]);

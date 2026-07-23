@@ -6,7 +6,7 @@
         <button type="button" class="fb-modal__close" @click="$emit('close')">&times;</button>
       </header>
 
-      <nav class="fb-modal__tabs">
+      <nav v-if="tabs.length > 1" class="fb-modal__tabs">
         <button
           v-for="t in tabs"
           :key="t.key"
@@ -21,21 +21,23 @@
         <!-- FIELDS -->
         <div v-show="tab === 'fields'" class="fb-modal__panel">
           <p class="fb-field__note">
-            Toggle which fields are sent and drag to set the column order in the sheet.
+            Toggle which fields are sent<span v-if="sortable"> and drag to set the order</span>.
           </p>
 
           <draggable
             v-model="rows"
             item-key="key"
             handle=".fb-row__handle"
+            :disabled="!sortable"
             class="fb-integration__fields"
           >
             <template #item="{ element }">
               <div class="fb-integration__field" :class="{ 'fb-integration__field--synthetic': element.synthetic }">
-                <span class="fb-row__handle" aria-hidden="true">⋮⋮</span>
+                <span v-if="sortable" class="fb-row__handle" aria-hidden="true">⋮⋮</span>
                 <span class="fb-integration__field-name">
                   {{ element.label }}
                   <em v-if="element.synthetic" class="fb-integration__field-tag">added</em>
+                  <em v-else-if="element.mergeField" class="fb-integration__field-tag">{{ element.mergeField }}</em>
                 </span>
                 <toggle :model-value="element.enabled ? 1 : 0" @update:model-value="element.enabled = !!Number($event)" />
               </div>
@@ -44,7 +46,7 @@
         </div>
 
         <!-- CONFIG -->
-        <div v-show="tab === 'config'" class="fb-modal__panel">
+        <div v-if="hasConfigTab" v-show="tab === 'config'" class="fb-modal__panel">
           <div class="fb-field">
             <label class="fb-field__label">Send Email Notifications</label>
             <toggle :model-value="sendEmail ? 1 : 0" @update:model-value="sendEmail = !!Number($event)" />
@@ -77,10 +79,6 @@ import Toggle from './controls/Toggle.vue';
 import modalAppClass from '../../lib/modalAppClass';
 import modalOverlay from '../../lib/modalOverlay';
 
-// synthetic (non-form) columns the processor knows how to render itself; their
-// key is stored verbatim in config.fields so the processor can special-case it
-const SYNTHETIC = [{ key: '__date', label: 'Date / Time' }];
-
 export default {
   name: 'IntegrationModal',
   components: { draggable, Toggle },
@@ -94,30 +92,44 @@ export default {
     const config = { ...(this.integration.config || {}) };
     return {
       tab: 'fields',
-      tabs: [
-        { key: 'fields', label: 'Fields' },
-        { key: 'config', label: 'Config' },
-      ],
       sendEmail: this.integration.send_email ?? true,
       config,
       rows: this.buildRows(config),
     };
   },
+  computed: {
+    // order only matters to integrations that write positionally (e.g. sheet columns)
+    sortable() {
+      return this.integration.sortable !== false;
+    },
+    // integrations that let the form's Email Notifications handle delivery and
+    // declare no settings have nothing to show here
+    hasConfigTab() {
+      return this.integration.config_tab !== false;
+    },
+    tabs() {
+      return [
+        { key: 'fields', label: 'Fields' },
+        ...(this.hasConfigTab ? [{ key: 'config', label: 'Config' }] : []),
+      ];
+    },
+  },
   methods: {
     /**
      * Merge saved field config with the form's current fields: keep saved order
      * and enabled state, append any new form fields, drop fields that no longer
-     * exist. Synthetic rows (Date) sit wherever they were dragged.
+     * exist. Synthetic rows sit wherever they were dragged.
      */
     buildRows(config) {
       const saved = Array.isArray(config.fields) ? config.fields : [];
       const formRows = this.fields.map((f) => ({
         key: `field${f.id}`,
         label: f.name || `Field ${f.id}`,
+        mergeField: f.merge_field || '',
         enabled: true,
         synthetic: false,
       }));
-      const syntheticRows = SYNTHETIC.map((s) => ({
+      const syntheticRows = (this.integration.synthetic || []).map((s) => ({
         key: s.key,
         label: s.label,
         enabled: true,
@@ -144,8 +156,8 @@ export default {
       return ordered;
     },
     onSave() {
-      // one ordered list including the synthetic Date row — the processor walks
-      // it in order, special-casing synthetic keys (e.g. __date)
+      // one ordered list including any synthetic rows — the processor walks it in
+      // order, special-casing synthetic keys (e.g. __date)
       const config = { ...this.config };
       config.fields = this.rows.map((r) => ({ key: r.key, enabled: r.enabled }));
 
