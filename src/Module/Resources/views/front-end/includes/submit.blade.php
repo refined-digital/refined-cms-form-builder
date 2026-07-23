@@ -2,7 +2,10 @@
 
 <div class="form__row form__row--buttons">
   {!! Honeypot::generate('hname', 'htime') !!}
-  <button type="submit" class="button" data-fb-submit disabled>
+  {{-- aria-disabled, not disabled: the click must still reach the submit handler
+       so invalid fields get their validation messages (and with JS off the form
+       still posts to the server, which validates anyway) --}}
+  <button type="submit" class="button button--disabled" data-fb-submit aria-disabled="true">
     <span class="form-button__text">
       {!! $form->submitText !!}
     </span>

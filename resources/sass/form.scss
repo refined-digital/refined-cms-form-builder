@@ -30,6 +30,12 @@
   pointer-events: none;
 }
 
+// stands in for :disabled on the submit button, which stays clickable so an
+// invalid submit can report why. no pointer-events: none — the click is the point
+.button--disabled {
+  opacity: .6;
+}
+
 // live strong-password checklist (ticks off as the visitor types)
 .form__password-rules {
   list-style: none;

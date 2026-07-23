@@ -16,9 +16,21 @@ function hasRequiredFields(form) {
 // Phase 9 submit-enable rule:
 //  - if the form has required fields -> enable when all required are valid
 //  - else -> enable when at least one field has valid content
+//
+// The button is marked aria-disabled rather than disabled: a truly disabled
+// button swallows the click, so the submit handler never runs and the visitor
+// gets no explanation of what's wrong. Clicking while invalid submits, which
+// runs validateAll() and paints the per-field messages.
 function evaluateSubmitState(form, validator) {
   const btn = form.querySelector('[type="submit"], .form-button, button[data-fb-submit]');
   if (!btn) return;
+
+  // a host app may be shadowing submit.blade.php with a copy that still hardcodes
+  // `disabled`; nothing else clears it now, and a stuck-disabled button can never
+  // be submitted. the loading check leaves submit.js's own disable alone.
+  if (btn.disabled && !btn.classList.contains('button--loading')) {
+    btn.disabled = false;
+  }
 
   const controls = validator.controls();
   let enable;
@@ -36,7 +48,8 @@ function evaluateSubmitState(form, validator) {
     });
   }
 
-  btn.disabled = !enable;
+  btn.setAttribute('aria-disabled', String(!enable));
+  btn.classList.toggle('button--disabled', !enable);
 }
 
 async function executeRecaptcha(form) {
@@ -73,6 +86,9 @@ function initForm(form) {
     const gibberishOk = checkGibberish(form);
     if (!validOk || !gibberishOk) {
       refreshSubmit();
+      // the first bad field can be well above the fold on a long form, so the
+      // message alone isn't necessarily visible feedback
+      form.querySelector('.form__control--error')?.focus({ preventScroll: false });
       return;
     }
 
