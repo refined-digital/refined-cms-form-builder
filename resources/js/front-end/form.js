@@ -6,7 +6,7 @@
 //  - submit-enable rule, loading, reCAPTCHA v3, gibberish (Phase 9)
 import { initConditions } from './conditions';
 import { createValidator } from './validation';
-import { submitForm } from './submit';
+import { submitForm, setLoading } from './submit';
 import { checkGibberish } from './gibberish';
 
 function hasRequiredFields(form) {
@@ -52,9 +52,26 @@ function evaluateSubmitState(form, validator) {
   btn.classList.toggle('button--disabled', !enable);
 }
 
+// v3 needs api.js?render=<site key> before grecaptcha.execute() exists. Injected
+// here rather than from blade so a host layout that already loads it doesn't end
+// up with the page fetching it twice.
+function loadRecaptcha(siteKey) {
+  if (window.grecaptcha || document.querySelector('script[src*="recaptcha/api.js"]')) return;
+  const s = document.createElement('script');
+  s.src = `https://www.google.com/recaptcha/api.js?render=${encodeURIComponent(siteKey)}`;
+  s.async = true;
+  document.head.appendChild(s);
+}
+
 async function executeRecaptcha(form) {
   const siteKey = form.getAttribute('data-red');
-  if (!siteKey || !window.grecaptcha) return;
+  if (!siteKey) return;
+  if (!window.grecaptcha) {
+    // the form wants reCAPTCHA but api.js never loaded — the token posts empty
+    // and the server rejects it, which reads as a mystery "could not be sent"
+    console.warn('[form-builder] reCAPTCHA is enabled on this form but api.js did not load.');
+    return;
+  }
   await new Promise((res) => window.grecaptcha.ready(res));
   const token = await window.grecaptcha.execute(siteKey, { action: 'submit' });
   let input = form.querySelector('input[name="_captcha"]');
@@ -70,6 +87,9 @@ async function executeRecaptcha(form) {
 function initForm(form) {
   if (form.dataset.fbInit === '1') return;
   form.dataset.fbInit = '1';
+
+  const siteKey = form.getAttribute('data-red');
+  if (siteKey) loadRecaptcha(siteKey);
 
   const reevaluateConditions = initConditions(form);
   const validator = createValidator(form);
@@ -92,6 +112,9 @@ function initForm(form) {
       return;
     }
 
+    // loading starts before the reCAPTCHA round-trip, not after — that await is
+    // the visible delay between clicking submit and the button reacting
+    setLoading(form, true);
     await executeRecaptcha(form);
     await submitForm(form);
   });

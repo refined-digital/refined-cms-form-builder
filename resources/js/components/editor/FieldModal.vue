@@ -231,7 +231,7 @@ export default {
     // the placeholder renders as an empty-valued first option rather than a
     // normal HTML placeholder, so its note reads differently
     isSelect() {
-      return this.typeId === TYPE.SELECT;
+      return this.typeId === TYPE.SELECT || this.typeId === TYPE.YESNO;
     },
     isCustom() {
       return this.typeId === TYPE.CUSTOM;

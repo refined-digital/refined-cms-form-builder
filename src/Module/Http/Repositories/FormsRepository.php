@@ -58,8 +58,8 @@ class FormsRepository
             'novalidate'
         ];
 
-        if ($this->form->recaptcha && env('RECAPTCHA_SITE_KEY')) {
-            $this->attributes['data-red'] = env('RECAPTCHA_SITE_KEY');
+        if ($this->form->recaptcha && config('form-builder.recaptcha_site_key')) {
+            $this->attributes['data-red'] = config('form-builder.recaptcha_site_key');
         }
 
         if ($this->replacement) {
@@ -456,13 +456,22 @@ class FormsRepository
       return $fields;
     }
 
+    /**
+     * The v3 api.js tag. v3 needs ?render=<site key> — without it grecaptcha.execute()
+     * doesn't exist and the token silently comes back empty.
+     */
     public function getGoogleRecaptchaJS()
     {
-        return '<script src="//www.google.com/recaptcha/api.js" async defer></script>';
+        $siteKey = config('form-builder.recaptcha_site_key');
+        if (!$siteKey) {
+            return '';
+        }
+
+        return '<script src="https://www.google.com/recaptcha/api.js?render='.e($siteKey).'"></script>';
     }
 
     public function googleRecaptchaEnabled()
     {
-        return env('RECAPTCHA_SITE_KEY') && env('RECAPTCHA_SECRET_KEY');
+        return config('form-builder.recaptcha_site_key') && config('form-builder.recaptcha_secret_key');
     }
 }

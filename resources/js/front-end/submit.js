@@ -32,7 +32,7 @@ function clearFormError(form) {
   box.hidden = true;
 }
 
-function setLoading(form, loading) {
+export function setLoading(form, loading) {
   const btn = form.querySelector('[type="submit"], .form-button, button');
   if (!btn) return;
   btn.classList.toggle('button--loading', loading);

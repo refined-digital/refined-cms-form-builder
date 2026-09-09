@@ -305,6 +305,11 @@ return [
         'logo_url'      => null,
     ],
 
+    // reCAPTCHA v3 keys. Read through config (not env() directly) so they still
+    // resolve on a host running `php artisan config:cache`, where env() is null.
+    'recaptcha_site_key'   => env('RECAPTCHA_SITE_KEY'),
+    'recaptcha_secret_key' => env('RECAPTCHA_SECRET_KEY'),
+
     // reCAPTCHA v3 score threshold (Phase 9). Below this is rejected as a bot.
     'recaptcha_threshold' => 0.5,
 
