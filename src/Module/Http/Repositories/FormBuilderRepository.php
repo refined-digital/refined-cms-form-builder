@@ -301,12 +301,19 @@ class FormBuilderRepository extends CoreRepository
                     'submitted_at' => '', // pre-formatted (timezone-aware) below
                     'count'        => 0,
                     'count_label'  => '',
+                    'failed'       => false,
                     'summary'      => $this->submissionSummary($entry, $form),
                     'rows'         => [],
                 ];
             }
 
-            $groups[$token]->count++;
+            // record-only rows aren't emails, so they don't count as "sent"
+            if (!($entry->data->record_only ?? false)) {
+                $groups[$token]->count++;
+            }
+            if ($entry->data->failed ?? false) {
+                $groups[$token]->failed = true;
+            }
             $groups[$token]->rows[] = $entry;
             // keep the earliest timestamp for the group
             if ($entry->created_at < $groups[$token]->created_at) {
@@ -318,7 +325,7 @@ class FormBuilderRepository extends CoreRepository
         $format = config('form-builder.datetime_format', 'd/m/Y g:ia');
         foreach ($groups as $g) {
             // a friendly "N sent" label for the Notifications column
-            $g->count_label = $g->count.' sent';
+            $g->count_label = $g->failed ? 'Failed' : ($g->count ? $g->count.' sent' : 'None sent');
             // timezone-aware display string (the list column renders it as text)
             $g->submitted_at = $g->created_at->copy()->timezone($tz)->format($format);
         }
@@ -350,6 +357,14 @@ class FormBuilderRepository extends CoreRepository
         $notifications = [];
         foreach ($group->rows as $row) {
             $notifications[] = (object) [
+                'record_only' => $row->data->record_only ?? false,
+                'failed'      => $row->data->failed ?? false,
+                'failure'     => ($row->data->failed ?? false) ? (object) [
+                    'integration' => $row->data->failure_integration ?? null,
+                    'message'     => $row->data->failure_message ?? null,
+                    'errors'      => $row->data->failure_errors ?? null,
+                    'exception'   => $row->data->failure_exception ?? null,
+                ] : null,
                 'name'       => $row->data->notification_name ?? null,
                 'subject'    => $row->data->subject ?? null,
                 'to'         => $row->to,
@@ -497,14 +512,21 @@ class FormBuilderRepository extends CoreRepository
                 $processor = app($definition['processor']);
                 $result = $processor->process($request, $form, $settings);
             } catch (\Throwable $e) {
-                return (object) ['success' => false, 'message' => $e->getMessage()];
+                return (object) [
+                    'success'          => false,
+                    'message'          => $e->getMessage(),
+                    'integration_key'  => $row->integration_key,
+                    'exception'        => get_class($e).' @ '.$e->getFile().':'.$e->getLine(),
+                ];
             }
 
             // a failure result aborts everything downstream
             if (is_object($result) && isset($result->success) && $result->success === false) {
+                $result->integration_key = $result->integration_key ?? $row->integration_key;
                 return $result;
             }
             if (is_array($result) && array_key_exists('success', $result) && $result['success'] === false) {
+                $result['integration_key'] = $result['integration_key'] ?? $row->integration_key;
                 return (object) $result;
             }
         }
@@ -527,8 +549,10 @@ class FormBuilderRepository extends CoreRepository
      * Send all active email notifications for the form. One EmailSubmission row is
      * stored per notification (preserves CSV export). Uses the core EmailRepository
      * (no custom mailer). Delivery is queued when configured.
+     *
+     * @return int  how many notification rows were stored (0 = nothing was sent)
      */
-    public function compileAndSend($request, $form)
+    public function compileAndSend($request, $form, $submissionGroup = null)
     {
         $repo = new EmailRepository();
         $queue = config('form-builder.queue_emails', true) && config('queue.default') !== 'sync';
@@ -537,7 +561,7 @@ class FormBuilderRepository extends CoreRepository
 
         // no configured notifications -> nothing to send
         if (!$notifications->count()) {
-            return;
+            return 0;
         }
 
         // the submitted values, stored on every EmailSubmission for CSV export
@@ -546,7 +570,8 @@ class FormBuilderRepository extends CoreRepository
 
         // one token per form-fill so the admin can group the per-notification
         // rows back into a single submission (no schema change — rides in `data`)
-        $submissionGroup = (string) \Illuminate\Support\Str::uuid();
+        $submissionGroup = $submissionGroup ?: (string) \Illuminate\Support\Str::uuid();
+        $sent = 0;
 
         foreach ($notifications as $notification) {
             // recipients may contain field<id> tokens — swap each for the
@@ -603,7 +628,47 @@ class FormBuilderRepository extends CoreRepository
             $settings->email_logo = config('form-builder.email.logo_url');
 
             $repo->send($settings, $queue);
+            $sent++;
         }
+
+        return $sent;
+    }
+
+    /**
+     * Store the submission on its own, with no email attached — used whenever the
+     * notifications didn't run (none configured/active, all recipients resolved
+     * empty, an integration suppressed them, or an integration failed). The admin
+     * needs a record of every form-fill to check against, so this row carries the
+     * same submitted values as a notification row and flags itself as not being a
+     * notification. Pass $failure (the runIntegrations result) to log why the
+     * submission was aborted.
+     */
+    public function storeSubmissionRecord($request, $form, $submissionGroup = null, $failure = null)
+    {
+        $settings = new \stdClass();
+        $settings->submission_group = $submissionGroup ?: (string) \Illuminate\Support\Str::uuid();
+        $settings->record_only = true;
+        $settings->notification_name = 'No notification sent';
+        $settings->form_id = $form->id;
+        $settings->data = is_array($request) ? $request : $request->all();
+
+        if ($failure) {
+            $integration = $failure->integration_key ?? null;
+            $settings->failed = true;
+            $settings->notification_name = 'Submission failed'.($integration ? ' — '.$integration : '');
+            $settings->failure_integration = $integration;
+            $settings->failure_message = $failure->message ?? 'Unknown error';
+            $settings->failure_errors = $failure->errors ?? null;
+            $settings->failure_exception = $failure->exception ?? null;
+        }
+
+        return \RefinedDigital\CMS\Modules\Core\Models\EmailSubmission::create([
+            'form_id' => $form->id,
+            'to'      => null,
+            'from'    => null,
+            'ip'      => help()->getClientIP(),
+            'data'    => $settings,
+        ]);
     }
 
     /**

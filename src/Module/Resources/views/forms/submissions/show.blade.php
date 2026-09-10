@@ -45,10 +45,23 @@
                 <div class="block">
                     <header><h3>{{ $note->name ?: 'Notification' }}</h3></header>
                     <div>
+                        @if ($note->failed)
+                            <p class="fb-sub-failed">This submission failed and was not completed — nothing was sent.</p>
+                        @elseif ($note->record_only)
+                            <p class="fb-sub-muted">Stored for the record — no notification email was sent for this submission.</p>
+                        @endif
+                        @if ($note->failed && $note->failure)
+                            <dl class="fb-sub-meta">
+                                @if ($note->failure->integration)<div class="fb-sub-meta__row"><dt>Integration</dt><dd>{{ $note->failure->integration }}</dd></div>@endif
+                                <div class="fb-sub-meta__row"><dt>Reason</dt><dd>{{ $note->failure->message ?: '—' }}</dd></div>
+                                @if ($note->failure->errors)<div class="fb-sub-meta__row"><dt>Errors</dt><dd>{{ json_encode($note->failure->errors) }}</dd></div>@endif
+                                @if ($note->failure->exception)<div class="fb-sub-meta__row"><dt>Thrown</dt><dd>{{ $note->failure->exception }}</dd></div>@endif
+                            </dl>
+                        @endif
                         <dl class="fb-sub-meta">
-                            <div class="fb-sub-meta__row"><dt>Sent</dt><dd>{{ $note->created_at->timezone(config('form-builder.timezone'))->format(config('form-builder.datetime_format', 'd/m/Y g:ia')) }}</dd></div>
+                            <div class="fb-sub-meta__row"><dt>{{ $note->record_only ? 'Received' : 'Sent' }}</dt><dd>{{ $note->created_at->timezone(config('form-builder.timezone'))->format(config('form-builder.datetime_format', 'd/m/Y g:ia')) }}</dd></div>
                             @if ($note->subject)<div class="fb-sub-meta__row"><dt>Subject</dt><dd>{{ $note->subject }}</dd></div>@endif
-                            <div class="fb-sub-meta__row"><dt>To</dt><dd>{{ $note->to ?: '—' }}</dd></div>
+                            @if (!$note->record_only)<div class="fb-sub-meta__row"><dt>To</dt><dd>{{ $note->to ?: '—' }}</dd></div>@endif
                             @if ($note->cc)<div class="fb-sub-meta__row"><dt>CC</dt><dd>{{ $note->cc }}</dd></div>@endif
                             @if ($note->bcc)<div class="fb-sub-meta__row"><dt>BCC</dt><dd>{{ $note->bcc }}</dd></div>@endif
                             @if ($note->reply_to)<div class="fb-sub-meta__row"><dt>Reply-To</dt><dd>{{ $note->reply_to }}</dd></div>@endif
@@ -108,5 +121,6 @@
     .fb-sub-meta dt { flex: 0 0 76px; margin: 0; color: #9ca3af; font-weight: 600; }
     .fb-sub-meta dd { margin: 0; color: #374151; word-break: break-word; }
     .fb-sub-muted { color: #c4c8cf; }
+    .fb-sub-failed { margin: 0 0 12px; font-size: 13px; color: #b91c1c; }
 </style>
 @stop
