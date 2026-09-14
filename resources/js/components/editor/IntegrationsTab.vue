@@ -33,6 +33,7 @@
       v-if="configuring"
       :integration="configuring"
       :fields="fields"
+      :api="api"
       @save="onModalSave"
       @close="configuring = null"
     />

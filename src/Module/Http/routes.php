@@ -50,6 +50,7 @@ Route::namespace('FormBuilder\Module\Http\Controllers')
                         // integrations (Phase 7)
                         Route::get('integrations', 'FormBuilderApiController@integrations')->name('integrations');
                         Route::put('integrations/{key}', 'FormBuilderApiController@updateIntegration')->name('integrations.update');
+                        Route::post('integrations/{key}/actions/{action}', 'FormBuilderApiController@integrationAction')->name('integrations.action');
                     });
             })
         ;

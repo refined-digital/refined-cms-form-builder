@@ -31,5 +31,6 @@ export function createApi(baseUrl) {
     // integrations (Phase 7)
     integrations: () => load(axios.get(`${base}/integrations`)),
     updateIntegration: (key, payload) => save(axios.put(`${base}/integrations/${key}`, payload)),
+    integrationAction: (key, action, config) => save(axios.post(`${base}/integrations/${key}/actions/${action}`, { config })),
   };
 }

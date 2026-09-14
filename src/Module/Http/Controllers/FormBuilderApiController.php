@@ -4,6 +4,7 @@ namespace RefinedDigital\FormBuilder\Module\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Str;
 use RefinedDigital\FormBuilder\Module\Http\Repositories\FormBuilderRepository;
 use RefinedDigital\FormBuilder\Module\Models\Form;
 use RefinedDigital\FormBuilder\Module\Models\FormField;
@@ -252,6 +253,28 @@ class FormBuilderApiController extends Controller
         );
 
         return response()->json(['data' => $integration]);
+    }
+
+    /**
+     * Run a button an integration declared in its settings ('type' => 'action'),
+     * e.g. clearing a cache. Calls the processor method named after the action in
+     * camelCase with the form and the modal's current (possibly unsaved) config.
+     */
+    public function integrationAction(Request $request, Form $form, $key, $action)
+    {
+        $integration = app(FormBuilderIntegrationAggregate::class)->get($key);
+        $declared = collect($integration['settings'] ?? [])
+            ->contains(fn ($s) => ($s['type'] ?? null) === 'action' && ($s['name'] ?? null) === $action);
+
+        // only declared actions are callable, so the url can't reach arbitrary processor methods
+        $method = Str::camel($action);
+        if (!$declared || !method_exists($integration['processor'], $method)) {
+            return response()->json(['message' => 'Unknown action'], 404);
+        }
+
+        $message = app($integration['processor'])->$method($form, $request->input('config', []));
+
+        return response()->json(['data' => ['message' => $message ?: 'Done']]);
     }
 
     /**

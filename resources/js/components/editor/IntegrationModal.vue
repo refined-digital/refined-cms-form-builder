@@ -57,7 +57,19 @@
             <label class="fb-field__label">
               {{ setting.label }}<span v-if="setting.required" class="fb-field__req">*</span>
             </label>
-            <select v-if="setting.type === 'select'" v-model="config[setting.name]" class="fb-field__input">
+            <template v-if="setting.type === 'action'">
+              <div>
+                <button
+                  type="button"
+                  class="button button--blue button--small"
+                  :disabled="running[setting.name]"
+                  @click="runAction(setting)"
+                >{{ setting.button || setting.label }}</button>
+              </div>
+              <p v-if="setting.note" class="fb-field__note">{{ setting.note }}</p>
+              <p v-if="actionMessages[setting.name]" class="fb-field__note">{{ actionMessages[setting.name] }}</p>
+            </template>
+            <select v-else-if="setting.type === 'select'" v-model="config[setting.name]" class="fb-field__input">
               <option v-for="opt in setting.options" :key="opt.value ?? opt" :value="opt.value ?? opt">{{ opt.label ?? opt }}</option>
             </select>
             <input v-else v-model="config[setting.name]" type="text" class="fb-field__input" />
@@ -86,6 +98,7 @@ export default {
   props: {
     integration: { type: Object, required: true },
     fields: { type: Array, default: () => [] },
+    api: { type: Object, default: null },
   },
   emits: ['save', 'close'],
   data() {
@@ -95,6 +108,9 @@ export default {
       sendEmail: this.integration.send_email ?? true,
       config,
       rows: this.buildRows(config),
+      // per action-setting name
+      running: {},
+      actionMessages: {},
     };
   },
   computed: {
@@ -162,6 +178,22 @@ export default {
       config.fields = this.rows.map((r) => ({ key: r.key, enabled: r.enabled }));
 
       this.$emit('save', { send_email: this.sendEmail, config });
+    },
+    /**
+     * Run an action setting (a button) server-side against the current, possibly
+     * unsaved, config and show the message it returns.
+     */
+    async runAction(setting) {
+      this.running[setting.name] = true;
+      this.actionMessages[setting.name] = '';
+      try {
+        const res = await this.api.integrationAction(this.integration.key, setting.name, this.config);
+        this.actionMessages[setting.name] = res.message;
+      } catch (e) {
+        this.actionMessages[setting.name] = e.response?.data?.message || 'Something went wrong';
+      } finally {
+        this.running[setting.name] = false;
+      }
     },
   },
 };
