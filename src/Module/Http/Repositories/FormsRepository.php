@@ -406,16 +406,14 @@ class FormsRepository
 
           if ($field->view === 'hidden') {
             $field->form_field_type_id = FormFieldType::HIDDEN->value;
-            if ($field->value) {
-              $field->hidden_field_value = $field->value;
-            }
-            $field->attributes = [];
-            if (class_exists($hiddenClassName)) {
-              $class = new $hiddenClassName($field);
-            }
-            if ($class) {
-              $view = $class->renderView();
-            }
+            // always set, so an empty value renders as an empty input instead of failing
+            $field->hidden_field_value = $field->value ?? '';
+            $field->attributes = [
+              'id' => 'form__field-extra--'.Str::slug($field->field_name)
+            ];
+            // extra fields are plain objects without renderView(), so render them now
+            // and let the fields view print the html
+            $field->html = (new $hiddenClassName($field))->renderView();
           }
 
           $field->view = $view;

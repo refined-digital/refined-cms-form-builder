@@ -1,8 +1,8 @@
 @if ($fields->hidden->count())
   <div class="form__fields--hidden">
     @foreach ($fields->hidden as $field)
-      @if (str_contains('formBuilder::', $field->view) && view()->exists($field->view))
-        @include($field->view)
+      @if (isset($field->html))
+        {!! $field->html !!}
       @else
         {!! $field->renderView($form->defaultFields, $selectFieldsOverride) !!}
       @endif
