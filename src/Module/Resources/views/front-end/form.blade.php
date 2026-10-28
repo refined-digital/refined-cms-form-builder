@@ -1,7 +1,8 @@
 @include('formBuilder::front-end.includes.errors')
 @include('formBuilder::front-end.includes.message')
 
-@if (session()->has('complete') && session()->has('form') && session()->get('form')->id == $form->id)
+{{-- the flashed form is an array once the session is json serialized (laravel 13) --}}
+@if (session()->has('complete') && data_get(session('form'), 'id') == $form->id)
   {!! $form->confirmation !!}
 @else
   <div class="form">
