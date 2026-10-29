@@ -55,6 +55,7 @@ Route::namespace('FormBuilder\Module\Http\Controllers')
             })
         ;
 
-        Route::resource('form-builder', 'FormBuilderController');
+        // duplicate is registered above, a resource duplicate route would reuse its name
+        Route::resource('form-builder', 'FormBuilderController')->except(['duplicate']);
     })
 ;

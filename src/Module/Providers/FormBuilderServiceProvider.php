@@ -19,11 +19,12 @@ class FormBuilderServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        view()->addNamespace('formBuilder', [
+        // only folders that exist: view:cache fails on a missing one, and the site overrides are optional
+        view()->addNamespace('formBuilder', array_filter([
             base_path('resources/views/forms'),
             app_path('RefinedCMS/Forms'),
             __DIR__.'/../Resources/views',
-        ]);
+        ], 'is_dir'));
 
         $this->loadMigrationsFrom(__DIR__.'/../../Database/Migrations');
 
