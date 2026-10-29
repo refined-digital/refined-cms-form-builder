@@ -295,6 +295,8 @@ class FormBuilderController extends CoreController
             $this->formBuilderRepository->storeSubmissionRecord($request, $form, $submissionGroup);
         }
 
+        \RefinedDigital\FormBuilder\Module\Support\CarePlanEnquiryPing::dispatch($submissionGroup);
+
         if (session()->has('form_data')) {
             session()->forget('form_data');
         }

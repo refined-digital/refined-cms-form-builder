@@ -291,6 +291,14 @@ return [
 
     'skip_validation' => [19, 12],
 
+    // optional enquiry ping to the Care Plans app: posts each form submission's
+    // uuid after the response so it can be counted as an enquiry. Off by default.
+    'care_plan_enquiries' => [
+        'enabled' => env('CARE_PLAN_ENQUIRIES_ENABLED', false),
+        'endpoint' => env('CARE_PLAN_ENQUIRIES_URL'),
+        'token' => env('CARE_PLAN_ENQUIRIES_TOKEN'),
+    ],
+
     // queue email notification delivery (only effective when QUEUE_CONNECTION is
     // not 'sync'; the EmailSubmission record is always written synchronously so
     // the CSV export stays reliable).
