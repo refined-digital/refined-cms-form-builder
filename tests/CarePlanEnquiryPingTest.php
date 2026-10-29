@@ -12,7 +12,7 @@ class CarePlanEnquiryPingTest extends TestCase
     {
         config(['form-builder.care_plan_enquiries' => array_merge([
             'enabled' => true,
-            'endpoint' => 'https://projects.test/api/care-plan-enquiries',
+            'endpoint' => 'https://projects.test/api/care-plans/enquiries',
             'token' => 'secret-token',
         ], $overrides)]);
     }
@@ -55,7 +55,7 @@ class CarePlanEnquiryPingTest extends TestCase
         Http::assertSentCount(1);
         Http::assertSent(function ($request) {
             return $request->method() === 'POST'
-                && $request->url() === 'https://projects.test/api/care-plan-enquiries'
+                && $request->url() === 'https://projects.test/api/care-plans/enquiries'
                 && $request->hasHeader('Authorization', 'Bearer secret-token')
                 && $request['idempotency_key'] === '11111111-2222-3333-4444-555555555555'
                 && strtotime($request['occurred_at']) !== false;
