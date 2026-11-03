@@ -39,14 +39,17 @@ return new class extends Migration
             });
         }
 
-        DB::table('form_field_types')->insertOrIgnore([
-            'id' => 24,
-            'name' => 'Heading',
-            'position' => 23,
-            'active' => 1,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        // a fresh install seeds every type (heading last, id 24) after migrating, so only add it to a seeded table
+        if (DB::table('form_field_types')->exists()) {
+            DB::table('form_field_types')->insertOrIgnore([
+                'id' => 24,
+                'name' => 'Heading',
+                'position' => 23,
+                'active' => 1,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
     }
 
     public function down(): void
