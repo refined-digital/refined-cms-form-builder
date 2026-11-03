@@ -77,6 +77,7 @@
 import { createApi } from '../lib/api';
 import { confirmDelete } from '../lib/confirmDelete';
 import { saveStatus } from '../lib/saveStatus';
+import { composeFields } from '../lib/pageOrder';
 import EditorCanvas from './editor/EditorCanvas.vue';
 import FieldPalette from './editor/FieldPalette.vue';
 import FieldModal from './editor/FieldModal.vue';
@@ -206,16 +207,21 @@ export default {
      * pages in tab order, each page's fields in the given order.
      */
     composeFields(currentFields) {
-      const rest = this.fields.filter((f) => !currentFields.includes(f));
-      const ordered = [];
-      this.pages.forEach((p) => {
-        const list = p.id === this.currentPageId
-          ? currentFields
-          : rest.filter((f) => Number(f.form_page_id) === p.id);
-        ordered.push(...list);
-      });
-      const placed = new Set(ordered);
-      return [...ordered, ...rest.filter((f) => !placed.has(f))];
+      return composeFields(this.fields, this.pages, this.currentPageId, currentFields);
+    },
+    /**
+     * Keep every field's saved position in page order (pages in tab order, each
+     * page's fields in their order), since emails, submissions, exports and the
+     * unpaged form all order by position alone.
+     */
+    async syncPagedOrder() {
+      if (!this.usesPages) return;
+      this.fields = this.composeFields(this.visibleFields);
+      try {
+        await this.api.reorder(this.fields.map((f) => f.id));
+      } catch (e) {
+        console.error('[form-builder] reorder failed', e);
+      }
     },
     async onAddPage() {
       try {
@@ -256,6 +262,7 @@ export default {
       } catch (e) {
         console.error('[form-builder] reorder pages failed', e);
       }
+      await this.syncPagedOrder();
     },
     defaultFieldPayload(type) {
       return {
@@ -276,6 +283,7 @@ export default {
       try {
         const field = await this.api.createField(this.defaultFieldPayload(type));
         this.fields.push(field);
+        await this.syncPagedOrder();
         this.openFieldModal(field);
       } catch (e) {
         console.error('[form-builder] create field failed', e);
@@ -308,8 +316,16 @@ export default {
       try {
         const saved = await this.api.updateField(payload.id, payload);
         const idx = this.fields.findIndex((f) => f.id === saved.id);
-        if (idx > -1) this.fields.splice(idx, 1, saved);
+        const movedPage = idx > -1 && Number(this.fields[idx].form_page_id) !== Number(saved.form_page_id);
+        if (movedPage) {
+          // a field moved to another page goes to the end of that page
+          this.fields.splice(idx, 1);
+          this.fields.push(saved);
+        } else if (idx > -1) {
+          this.fields.splice(idx, 1, saved);
+        }
         this.modalField = null;
+        if (movedPage) await this.syncPagedOrder();
       } catch (e) {
         console.error('[form-builder] save field failed', e);
       }
