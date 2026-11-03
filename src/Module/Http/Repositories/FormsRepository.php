@@ -58,6 +58,15 @@ class FormsRepository
             'novalidate'
         ];
 
+        if ($this->usesPages()) {
+            $args->attributes['data-fb-pages'] = '1';
+        }
+
+        if ($this->form->autosave) {
+            $args->attributes['data-fb-autosave'] = '1';
+            $args->attributes['data-fb-autosave-days'] = (string) config('form-builder.autosave_days', 30);
+        }
+
         if ($this->form->recaptcha && config('form-builder.recaptcha_site_key')) {
             $this->attributes['data-red'] = config('form-builder.recaptcha_site_key');
         }
@@ -254,7 +263,42 @@ class FormsRepository
         }
       }
 
+      $fields->pages = $this->usesPages() ? $this->groupByPage($fields->fields) : null;
+
       return $fields;
+    }
+
+    /**
+     * Whether the form renders as steps: the option is on and at least one page exists.
+     */
+    protected function usesPages(): bool
+    {
+        return $this->form->use_pages && $this->form->pages->count();
+    }
+
+    /**
+     * Split the visible fields into the form's pages, in page order. Fields keep their
+     * own order; those without a page (or on a deleted one) go on the first page.
+     * Pages left with no fields are dropped so there are no blank steps.
+     */
+    protected function groupByPage($fields)
+    {
+        $pages = $this->form->pages->values();
+        $firstId = $pages->first()->id;
+        $knownIds = $pages->pluck('id')->all();
+
+        $grouped = $pages->map(function ($page) use ($fields, $firstId, $knownIds) {
+            return (object) [
+                'name' => $page->name,
+                'fields' => $fields->filter(function ($field) use ($page, $firstId, $knownIds) {
+                    $pageId = in_array($field->form_page_id, $knownIds) ? $field->form_page_id : $firstId;
+
+                    return $pageId == $page->id;
+                })->values(),
+            ];
+        });
+
+        return $grouped->filter(fn ($page) => $page->fields->count())->values();
     }
 
 

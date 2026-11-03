@@ -1,3 +1,5 @@
+{{-- unpaged forms are one group with no wrapper, so their markup is unchanged --}}
+@php $groups = $fields->pages ?: [(object) ['name' => '', 'fields' => $fields->fields]]; @endphp
 @if ($fields->hidden->count())
   <div class="form__fields--hidden">
     @foreach ($fields->hidden as $field)
@@ -12,7 +14,7 @@
 
 @if ($fields->fields->count())
   <div class="form__fields--fields">
-    @foreach ($fields->fields as $field)
+{!! $fields->pages ? '<p class="form__page-indicator" data-fb-page-indicator></p>' : '' !!}    @foreach ($groups as $index => $page){!! $fields->pages ? '<div class="form__page" data-fb-page="'.e($index).'" data-fb-page-name="'.e($page->name).'">' : '' !!}@foreach ($page->fields as $field)
       {{-- structural fields (group start/end) render their own markup --}}
       @if ($field->is_structural)
         {!! $field->renderView($form->defaultFields, $selectFieldsOverride) !!}
@@ -36,6 +38,6 @@
       @else
         {!! view('formBuilder::front-end.elements.row', $rowData) !!}
       @endif
-    @endforeach
+    @endforeach{!! $fields->pages ? '</div>' : '' !!}@endforeach
   </div>
 @endif
