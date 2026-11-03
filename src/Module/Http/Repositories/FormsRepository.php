@@ -291,7 +291,9 @@ class FormsRepository
             return (object) [
                 'name' => $page->name,
                 'fields' => $fields->filter(function ($field) use ($page, $firstId, $knownIds) {
-                    $pageId = in_array($field->form_page_id, $knownIds) ? $field->form_page_id : $firstId;
+                    // fields from setAdditionalFields() are plain objects without a page
+                    $fieldPageId = $field->form_page_id ?? null;
+                    $pageId = in_array($fieldPageId, $knownIds) ? $fieldPageId : $firstId;
 
                     return $pageId == $page->id;
                 })->values(),
