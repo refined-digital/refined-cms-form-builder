@@ -96,6 +96,24 @@ function handleSuccess(form, data) {
 }
 
 /**
+ * The token route's url. The token route sits beside the submit route, so it is
+ * derived from the form's action, which keeps sub-path installs working without
+ * new markup. A data-fb-token-url attribute on the form overrides it.
+ *
+ * @param {HTMLFormElement} form
+ * @returns {string}
+ */
+export function tokenUrl(form) {
+  if (form.dataset.fbTokenUrl) return form.dataset.fbTokenUrl;
+  try {
+    const url = new URL(form.getAttribute('action') || '', window.location.href);
+    const path = url.pathname.replace(/\/forms\/[^/]+\/submit\/?$/, '/forms/token');
+    if (path !== url.pathname) return path;
+  } catch (e) { /* fall back to the site root */ }
+  return '/forms/token';
+}
+
+/**
  * Fetch a fresh CSRF token and write it into the form's _token input and the csrf-token meta.
  * Laravel reads the _token input before the X-CSRF-TOKEN header, so both must change.
  * A failed fetch is ignored: the submit goes ahead with the current token.
@@ -105,7 +123,7 @@ function handleSuccess(form, data) {
  */
 export async function refreshToken(form) {
   try {
-    const res = await fetch('/forms/token', {
+    const res = await fetch(tokenUrl(form), {
       headers: { 'X-Requested-With': 'XMLHttpRequest', Accept: 'application/json' },
       cache: 'no-store',
       credentials: 'same-origin',
