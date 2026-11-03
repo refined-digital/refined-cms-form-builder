@@ -130,7 +130,7 @@ function initForm(form) {
       const firstError = form.querySelector('.form__control--error');
       // the first error may sit on an earlier page that is currently hidden
       const errorPage = firstError?.closest('[data-fb-page]');
-      if (pages && errorPage) pages.show(errorPage.dataset.fbPage);
+      if (pages && errorPage) showPageOf(pages, errorPage);
       firstError?.focus({ preventScroll: false });
       return;
     }
@@ -146,11 +146,23 @@ function initForm(form) {
       const serverError = form.querySelector('.form__control--error');
       const errorPage = serverError?.closest('[data-fb-page]');
       if (errorPage) {
-        pages.show(errorPage.dataset.fbPage);
+        showPageOf(pages, errorPage);
         serverError.focus();
       }
     }
   });
+}
+
+/**
+ * Switch to the page holding an error, only when it isn't already showing: show()
+ * scrolls to the form top, which would fight the focus on the error itself.
+ *
+ * @param {{ show: (index: number) => void, current: () => number }} pages
+ * @param {HTMLElement} pageEl
+ */
+function showPageOf(pages, pageEl) {
+  const index = Number(pageEl.dataset.fbPage);
+  if (index !== pages.current()) pages.show(index);
 }
 
 function boot() {
