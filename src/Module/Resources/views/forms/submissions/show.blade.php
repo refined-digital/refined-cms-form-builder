@@ -26,6 +26,10 @@
                 @if (count($submission->fields))
                     <dl class="fb-sub-fields">
                         @foreach ($submission->fields as $field)
+                            @if (!empty($field->heading))
+                                <h4 class="fb-sub-heading">{{ $field->name }}</h4>
+                                @continue
+                            @endif
                             <div class="fb-sub-fields__row">
                                 <dt>{{ $field->name }}</dt>
                                 <dd>{!! $field->value !== '' && $field->value !== null ? $field->value : '<span class="fb-sub-muted">—</span>' !!}</dd>
@@ -113,6 +117,15 @@
         border-bottom: 1px solid #eef0f2;
     }
     .fb-sub-fields__row:last-child { border-bottom: 0; }
+    .fb-sub-heading {
+        margin: 24px 0 4px;
+        padding-bottom: 6px;
+        border-bottom: 2px solid #e5e7eb;
+        font-size: 15px;
+        font-weight: 700;
+        color: #111827;
+    }
+    .fb-sub-heading:first-child { margin-top: 0; }
     .fb-sub-fields dt { margin: 0; font-weight: 600; color: #374151; }
     .fb-sub-fields dd { margin: 0; color: #111827; word-break: break-word; }
 

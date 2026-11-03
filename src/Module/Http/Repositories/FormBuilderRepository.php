@@ -219,7 +219,7 @@ class FormBuilderRepository extends CoreRepository
             ];
             // match EmailRepository::formatFields skip list (passwords, static,
             // hidden, group start/end) so export columns line up with the data
-            $hide = [FieldType::PASSWORD->value, FieldType::PASSWORD_CONFIRM->value, FieldType::HIDDEN->value, FieldType::STATIC->value, FieldType::GROUP_START->value, FieldType::GROUP_END->value];
+            $hide = [FieldType::PASSWORD->value, FieldType::PASSWORD_CONFIRM->value, FieldType::HIDDEN->value, FieldType::STATIC->value, FieldType::GROUP_START->value, FieldType::GROUP_END->value, FieldType::HEADING->value];
 
             // add in the field titles
             if ($form->fields && $form->fields->count()) {
@@ -419,6 +419,10 @@ class FormBuilderRepository extends CoreRepository
 
         $parts = [];
         foreach ($fields as $field) {
+            if (!empty($field->heading)) {
+                continue;
+            }
+
             $value = trim(strip_tags((string) $field->value));
             if ($value !== '') {
                 $parts[] = $value;
