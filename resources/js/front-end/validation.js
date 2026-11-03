@@ -153,6 +153,15 @@ export function createValidator(form) {
     return ok;
   };
 
+  // same as validateAll, scoped to the controls inside one container
+  const validateWithin = (container) => {
+    let ok = true;
+    controls().filter((el) => container.contains(el)).forEach((el) => {
+      if (!validateControl(el)) ok = false;
+    });
+    return ok;
+  };
+
   // wire blur + live (live only after the field has been touched)
   const touched = new WeakSet();
   form.addEventListener('blur', (e) => {
@@ -176,5 +185,5 @@ export function createValidator(form) {
     if (touched.has(el) || validatesWhileTyping(el)) validateControl(el);
   });
 
-  return { validateAll, validateControl, isValid, controls };
+  return { validateAll, validateWithin, validateControl, isValid, controls };
 }

@@ -8,9 +8,18 @@ import { initConditions } from './conditions';
 import { createValidator } from './validation';
 import { submitForm, setLoading } from './submit';
 import { checkGibberish } from './gibberish';
+import { initPages } from './pages';
+
+// on a paged form the submit button lives on the last page, so only that page's
+// controls gate it; earlier pages are validated by Next
+function submitScope(form) {
+  if (form.dataset.fbPages !== '1') return form;
+  const pages = form.querySelectorAll('[data-fb-page]');
+  return pages.length ? pages[pages.length - 1] : form;
+}
 
 function hasRequiredFields(form) {
-  return form.querySelector('[required], [data-fb-required="1"]') !== null;
+  return submitScope(form).querySelector('[required], [data-fb-required="1"]') !== null;
 }
 
 // Phase 9 submit-enable rule:
@@ -32,7 +41,8 @@ function evaluateSubmitState(form, validator) {
     btn.disabled = false;
   }
 
-  const controls = validator.controls();
+  const scope = submitScope(form);
+  const controls = validator.controls().filter((el) => scope.contains(el));
   let enable;
 
   // use the pure isValid() check so toggling the submit button never paints
@@ -93,6 +103,7 @@ function initForm(form) {
 
   const reevaluateConditions = initConditions(form);
   const validator = createValidator(form);
+  const pages = form.dataset.fbPages === '1' ? initPages(form, validator) : null;
 
   const refreshSubmit = () => evaluateSubmitState(form, validator);
   form.addEventListener('input', refreshSubmit);
@@ -108,7 +119,11 @@ function initForm(form) {
       refreshSubmit();
       // the first bad field can be well above the fold on a long form, so the
       // message alone isn't necessarily visible feedback
-      form.querySelector('.form__control--error')?.focus({ preventScroll: false });
+      const firstError = form.querySelector('.form__control--error');
+      // the first error may sit on an earlier page that is currently hidden
+      const errorPage = firstError?.closest('[data-fb-page]');
+      if (pages && errorPage) pages.show(errorPage.dataset.fbPage);
+      firstError?.focus({ preventScroll: false });
       return;
     }
 
