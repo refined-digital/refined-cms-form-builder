@@ -24,6 +24,7 @@ export const TYPE = {
   DOB: 21,
   GROUP_START: 22,
   GROUP_END: 23,
+  HEADING: 24,
 };
 
 // types whose values come from FormFieldOption rows (the editor shows an options builder)
@@ -39,7 +40,7 @@ export const TYPES_WITH_PLACEHOLDER = [
 export const FILE_TYPES = [TYPE.FILE, TYPE.FILES];
 
 // structural fields that don't collect input
-export const STRUCTURAL_TYPES = [TYPE.GROUP_START, TYPE.GROUP_END, TYPE.STATIC, TYPE.HIDDEN];
+export const STRUCTURAL_TYPES = [TYPE.GROUP_START, TYPE.GROUP_END, TYPE.HEADING, TYPE.STATIC, TYPE.HIDDEN];
 
 /**
  * Validate field-group markers (Group Start/End) in field order. Groups can't

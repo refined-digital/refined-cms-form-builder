@@ -20,6 +20,11 @@ export function createApi(baseUrl) {
     updateField: (id, payload) => save(axios.put(`${base}/fields/${id}`, payload)),
     deleteField: (id) => save(axios.delete(`${base}/fields/${id}`)),
     reorder: (order) => save(axios.post(`${base}/fields/reorder`, { order })),
+    pages: () => load(axios.get(`${base}/pages`)),
+    createPage: (name) => save(axios.post(`${base}/pages`, { name })),
+    renamePage: (id, name) => save(axios.put(`${base}/pages/${id}`, { name })),
+    reorderPages: (order) => save(axios.post(`${base}/pages/reorder`, { order })),
+    deletePage: (id) => save(axios.delete(`${base}/pages/${id}`)),
     updateForm: (payload) => save(axios.put(`${base}`, payload)),
 
     // email notifications

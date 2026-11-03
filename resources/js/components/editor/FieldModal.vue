@@ -43,7 +43,15 @@
             </p>
           </div>
 
-          <div class="fb-field">
+          <div v-if="usesPages" class="fb-field">
+            <label class="fb-field__label">Page</label>
+            <select v-model.number="model.form_page_id" class="fb-field__input">
+              <option v-for="p in pages" :key="p.id" :value="p.id">{{ p.name || 'Untitled page' }}</option>
+            </select>
+            <p class="fb-field__note">The page this field appears on.</p>
+          </div>
+
+          <div v-if="!isHeading" class="fb-field">
             <label class="fb-field__label">Default Value</label>
             <input v-model="model.default_value" type="text" class="fb-field__input" />
             <p class="fb-field__note">Set a default value.</p>
@@ -68,7 +76,7 @@
 
         <!-- SETTINGS -->
         <div v-show="tab === 'settings'" class="fb-modal__panel">
-          <div class="fb-field">
+          <div v-if="!isHeading" class="fb-field">
             <label class="fb-field__label">Required Field</label>
             <toggle v-model="model.required" />
           </div>
@@ -191,6 +199,8 @@ export default {
     fieldTypes: { type: Array, default: () => [] },
     fields: { type: Array, default: () => [] },
     integrationsEnabled: { type: Boolean, default: false },
+    pages: { type: Array, default: () => [] },
+    usesPages: { type: Boolean, default: false },
   },
   emits: ['save', 'close'],
   data() {
@@ -235,6 +245,9 @@ export default {
     },
     isCustom() {
       return this.typeId === TYPE.CUSTOM;
+    },
+    isHeading() {
+      return this.typeId === TYPE.HEADING;
     },
     isHidden() {
       return this.typeId === TYPE.HIDDEN;

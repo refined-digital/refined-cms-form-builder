@@ -60,6 +60,8 @@ $fb-radius: 6px;
     gap: 24px;
     align-items: start;
   }
+
+  &__main { min-width: 0; }
 }
 
 // ---- Canvas ----
@@ -801,4 +803,74 @@ $fb-radius: 6px;
 .fb-save-leave-to {
   opacity: 0;
   transform: translateY(6px);
+}
+
+// page tabs above the canvas (forms that use pages)
+.fb-pages {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+
+  &__list { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  &__tab {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    background: #fff;
+    border: 1px solid $fb-border;
+    border-radius: $fb-radius;
+
+    &--active { border-color: $fb-blue; box-shadow: 0 0 0 1px $fb-blue; }
+  }
+
+  &__grip { color: $fb-muted; cursor: grab; font-size: 11px; }
+
+  &__name {
+    appearance: none;
+    background: none;
+    border: none;
+    padding: 4px 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: $fb-text;
+    cursor: pointer;
+  }
+
+  &__input {
+    border: 1px solid $fb-border-strong;
+    border-radius: 4px;
+    padding: 3px 6px;
+    font-size: 13px;
+    width: 140px;
+  }
+
+  &__delete {
+    appearance: none;
+    background: none;
+    border: none;
+    padding: 0 4px;
+    font-size: 16px;
+    line-height: 1;
+    color: $fb-muted;
+    cursor: pointer;
+
+    &:hover { color: $fb-red; }
+  }
+
+  &__add {
+    appearance: none;
+    background: none;
+    border: 1px dashed $fb-border-strong;
+    border-radius: $fb-radius;
+    padding: 7px 12px;
+    font-size: 13px;
+    color: $fb-muted;
+    cursor: pointer;
+
+    &:hover { color: $fb-blue; border-color: $fb-blue; }
+  }
 }

@@ -12,6 +12,18 @@
       <toggle v-model="recaptcha" @update:model-value="save" />
       <p class="fb-field__note">Protect this form with invisible reCAPTCHA v3.</p>
     </div>
+
+    <div class="fb-field">
+      <label class="fb-field__label">Use pages</label>
+      <toggle v-model="usePages" @update:model-value="save" />
+      <p class="fb-field__note">Split the form into pages you lay out on the Fields tab.</p>
+    </div>
+
+    <div class="fb-field">
+      <label class="fb-field__label">Autosave answers</label>
+      <toggle v-model="autosave" @update:model-value="save" />
+      <p class="fb-field__note">Save answers in the visitor's browser as they type. They are cleared on submit, after 30 days, or with Start over.</p>
+    </div>
   </div>
 </template>
 
@@ -29,6 +41,8 @@ export default {
     return {
       name: this.form.name || '',
       recaptcha: Number(this.form.recaptcha) ? 1 : 0,
+      usePages: Number(this.form.use_pages) ? 1 : 0,
+      autosave: Number(this.form.autosave) ? 1 : 0,
       nameError: '',
     };
   },
@@ -42,6 +56,8 @@ export default {
       this.$emit('save', {
         name: this.name,
         recaptcha: this.recaptcha,
+        use_pages: this.usePages,
+        autosave: this.autosave,
       });
     },
   },

@@ -53,6 +53,7 @@ class FormBuilderApiController extends Controller
         20 => ['group' => 'Advanced', 'icon' => 'fa-puzzle-piece'],
         22 => ['group' => 'Advanced', 'icon' => 'fa-object-group'],
         23 => ['group' => 'Advanced', 'icon' => 'fa-object-ungroup'],
+        24 => ['group' => 'Advanced', 'icon' => 'fa-heading'],
     ];
 
     public function __construct()

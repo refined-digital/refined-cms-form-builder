@@ -58,7 +58,7 @@ export default {
       return Number(this.field.form_field_type_id);
     },
     showLabel() {
-      return Number(this.field.show_label) !== 0 && this.typeId !== TYPE.HIDDEN;
+      return Number(this.field.show_label) !== 0 && this.typeId !== TYPE.HIDDEN && this.typeId !== TYPE.HEADING;
     },
     // radio / checkbox render as a list of choices; select renders as a dropdown
     isChoiceList() {
@@ -70,7 +70,7 @@ export default {
     // hidden rows render no label or preview, so without the name every one of
     // them looks identical in the canvas
     structuralLabel() {
-      if (this.typeId === TYPE.HIDDEN && this.field.name) {
+      if ((this.typeId === TYPE.HIDDEN || this.typeId === TYPE.HEADING) && this.field.name) {
         return `${this.typeMeta.name}: ${this.field.name}`;
       }
       return this.typeMeta.name;

@@ -13,7 +13,7 @@
     $initialForm = collect($data->getAttributes())
         ->only([
             'id', 'name', 'submit_text', 'submit_action', 'redirect_url',
-            'confirmation', 'redirect_page', 'recaptcha', 'active',
+            'confirmation', 'redirect_page', 'recaptcha', 'active', 'use_pages', 'autosave',
         ])
         ->toArray();
 @endphp
