@@ -4,11 +4,14 @@
 //  - Zod live/blur validation (Phase 5)
 //  - AJAX submit + outcome handling (Phase 5)
 //  - submit-enable rule, loading, reCAPTCHA v3, gibberish (Phase 9)
+//  - pages, "Add another" repeater rows, browser autosave
 import { initConditions } from './conditions';
 import { createValidator } from './validation';
 import { submitForm, setLoading } from './submit';
 import { checkGibberish } from './gibberish';
 import { initPages } from './pages';
+import { initRepeaters } from './repeater';
+import { initAutosave, clearAutosave } from './autosave';
 
 // on a paged form the submit button lives on the last page, so only that page's
 // controls gate it; earlier pages are validated by Next
@@ -101,6 +104,8 @@ function initForm(form) {
   const siteKey = form.getAttribute('data-red');
   if (siteKey) loadRecaptcha(siteKey);
 
+  // rows exist before conditions and validation look for controls
+  initRepeaters(form);
   const reevaluateConditions = initConditions(form);
   const validator = createValidator(form);
   const pages = form.dataset.fbPages === '1' ? initPages(form, validator) : null;
@@ -108,6 +113,9 @@ function initForm(form) {
   const refreshSubmit = () => evaluateSubmitState(form, validator);
   form.addEventListener('input', refreshSubmit);
   form.addEventListener('change', () => { reevaluateConditions(); refreshSubmit(); });
+  // restore after the listeners above so its change events re-run conditions
+  const autosave = form.dataset.fbAutosave === '1';
+  if (autosave) initAutosave(form, pages);
   refreshSubmit();
 
   form.addEventListener('submit', async (e) => {
@@ -131,7 +139,7 @@ function initForm(form) {
     // the visible delay between clicking submit and the button reacting
     setLoading(form, true);
     await executeRecaptcha(form);
-    await submitForm(form);
+    await submitForm(form, autosave ? { onSuccess: () => clearAutosave(form) } : {});
   });
 }
 

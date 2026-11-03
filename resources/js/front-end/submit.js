@@ -104,7 +104,14 @@ async function postForm(form) {
   });
 }
 
-export async function submitForm(form) {
+/**
+ * Post the form and handle the outcome.
+ *
+ * @param {HTMLFormElement} form
+ * @param {{ onSuccess?: () => void }} [options] onSuccess runs after a 2xx, before the redirect or confirmation
+ * @returns {Promise<{ ok: boolean, status?: number, data?: object }>}
+ */
+export async function submitForm(form, { onSuccess } = {}) {
   setLoading(form, true);
   clearFormError(form);
   try {
@@ -140,6 +147,7 @@ export async function submitForm(form) {
     }
 
     const data = await res.json().catch(() => ({}));
+    onSuccess?.();
     handleSuccess(form, data);
     return { ok: true, data };
   } catch (e) {
