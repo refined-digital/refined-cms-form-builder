@@ -180,7 +180,9 @@ export function initAutosave(form, pages = null) {
   };
 
   const entry = readEntry(key);
-  if (entry && (typeof entry.savedAt !== 'number' || Date.now() - entry.savedAt > days * DAY_MS)) {
+  // a savedAt in the future (clock change, tampering) would never expire, so it counts as invalid
+  const now = Date.now();
+  if (entry && (typeof entry.savedAt !== 'number' || entry.savedAt > now || now - entry.savedAt > days * DAY_MS)) {
     removeEntry(key);
   } else if (entry && entry.values && typeof entry.values === 'object') {
     // restoring must not refresh savedAt: expiry counts from the visitor's last change
