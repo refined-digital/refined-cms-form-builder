@@ -40,6 +40,13 @@ Route::namespace('FormBuilder\Module\Http\Controllers')
                         Route::delete('fields/{field}', 'FormBuilderApiController@destroyField')->name('fields.destroy');
                         Route::put('/', 'FormBuilderApiController@updateForm')->name('update');
 
+                        // pages
+                        Route::get('pages', 'FormBuilderApiController@pages')->name('pages');
+                        Route::post('pages', 'FormBuilderApiController@storePage')->name('pages.store');
+                        Route::post('pages/reorder', 'FormBuilderApiController@reorderPages')->name('pages.reorder');
+                        Route::put('pages/{page}', 'FormBuilderApiController@updatePage')->name('pages.update');
+                        Route::delete('pages/{page}', 'FormBuilderApiController@destroyPage')->name('pages.destroy');
+
                         // email notifications (Phase 6)
                         Route::get('notifications', 'FormBuilderApiController@notifications')->name('notifications');
                         Route::post('notifications', 'FormBuilderApiController@storeNotification')->name('notifications.store');

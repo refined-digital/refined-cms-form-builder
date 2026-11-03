@@ -9,6 +9,7 @@ use RefinedDigital\FormBuilder\Module\Http\Repositories\FormBuilderRepository;
 use RefinedDigital\FormBuilder\Module\Models\Form;
 use RefinedDigital\FormBuilder\Module\Models\FormField;
 use RefinedDigital\FormBuilder\Module\Models\FormFieldType;
+use RefinedDigital\FormBuilder\Module\Models\FormPage;
 use RefinedDigital\FormBuilder\Module\Models\FormEmailNotification;
 use RefinedDigital\FormBuilder\Module\Models\FormIntegration;
 use RefinedDigital\CMS\Modules\Core\Aggregates\FormBuilderIntegrationAggregate;
@@ -153,6 +154,78 @@ class FormBuilderApiController extends Controller
         return response()->json(['data' => $form->fresh()]);
     }
 
+    // ---- Pages ----
+
+    /**
+     * All pages for a form, ordered by position.
+     */
+    public function pages(Form $form)
+    {
+        return response()->json(['data' => $form->pages()->get()]);
+    }
+
+    /**
+     * Append a page to the end of the form. Body: { name }.
+     */
+    public function storePage(Request $request, Form $form)
+    {
+        $page = FormPage::create([
+            'form_id'  => $form->id,
+            'name'     => (string) $request->input('name', ''),
+            'position' => FormPage::where('form_id', $form->id)->max('position') + 1,
+        ]);
+
+        return response()->json(['data' => $page->fresh()], 201);
+    }
+
+    /**
+     * Rename a page. Body: { name }.
+     */
+    public function updatePage(Request $request, Form $form, $pageId)
+    {
+        $page = FormPage::where('form_id', $form->id)->findOrFail($pageId);
+        $page->update(['name' => (string) $request->input('name', '')]);
+
+        return response()->json(['data' => $page->fresh()]);
+    }
+
+    /**
+     * Persist a new page order. Body: { order: [pageId, pageId, ...] }.
+     */
+    public function reorderPages(Request $request, Form $form)
+    {
+        $order = $request->input('order', []);
+        $position = 0;
+        foreach ($order as $pageId) {
+            FormPage::where('form_id', $form->id)->where('id', $pageId)
+                ->update(['position' => $position++]);
+        }
+
+        return response()->json(['data' => ['order' => $order]]);
+    }
+
+    /**
+     * Delete a page, moving its fields to the previous page by position (or the
+     * next page when it is the first). The only page of a form can't be deleted.
+     */
+    public function destroyPage(Form $form, $pageId)
+    {
+        $page = FormPage::where('form_id', $form->id)->findOrFail($pageId);
+        $others = FormPage::where('form_id', $form->id)->where('id', '!=', $page->id);
+
+        if (!(clone $others)->exists()) {
+            return response()->json(['message' => 'A form needs at least one page'], 422);
+        }
+
+        $target = (clone $others)->where('position', '<', $page->position)->orderByDesc('position')->first()
+            ?? (clone $others)->orderBy('position')->first();
+
+        FormField::where('form_page_id', $page->id)->update(['form_page_id' => $target->id]);
+        $page->delete();
+
+        return response()->json(['data' => ['id' => (int) $pageId]]);
+    }
+
     // ---- Email notifications (Phase 6) ----
 
     public function notifications(Form $form)
@@ -287,7 +360,7 @@ class FormBuilderApiController extends Controller
             'placeholder', 'default_value', 'error_message', 'include_in_email',
             'visibility', 'visibility_rules', 'data', 'custom_field_class',
             'store_in', 'note', 'note_position', 'label_position', 'autocomplete',
-            'custom_class', 'merge_field', 'hidden_field_value', 'settings',
+            'custom_class', 'merge_field', 'hidden_field_value', 'settings', 'form_page_id',
         ]);
 
         // visibility_rules is cast to array on the model; accept null/array/json
