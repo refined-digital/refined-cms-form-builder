@@ -410,6 +410,11 @@ class FormsRepository
         $counts = [];
         if (isset($form->fields)) {
             foreach ($form->fields as $field) {
+                // headings hold no answer, and sharing a field's name would shift that field's key
+                if ($field->form_field_type_id == FormFieldType::HEADING->value) {
+                    continue;
+                }
+
                 $key = $field->name;
                 if (isset($counts[$field->name])) {
                     $key .= '_'.$counts[$field->name];
