@@ -33,7 +33,11 @@ function clearFormError(form) {
 }
 
 export function setLoading(form, loading) {
-  const btn = form.querySelector('[type="submit"], .form-button, button');
+  // a comma list matches in document order, so a bare `button` would pick an
+  // earlier Back/Add another/Remove button over the submit button
+  const btn = form.querySelector('[data-fb-submit]')
+    || form.querySelector('[type="submit"]')
+    || form.querySelector('.form-button, button');
   if (!btn) return;
   btn.classList.toggle('button--loading', loading);
   btn.disabled = loading;

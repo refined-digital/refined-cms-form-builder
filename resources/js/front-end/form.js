@@ -139,7 +139,17 @@ function initForm(form) {
     // the visible delay between clicking submit and the button reacting
     setLoading(form, true);
     await executeRecaptcha(form);
-    await submitForm(form, autosave ? { onSuccess: () => clearAutosave(form) } : {});
+    const result = await submitForm(form, autosave ? { onSuccess: () => clearAutosave(form) } : {});
+
+    // a server-side field error can sit on an earlier, hidden page
+    if (!result.ok && pages) {
+      const serverError = form.querySelector('.form__control--error');
+      const errorPage = serverError?.closest('[data-fb-page]');
+      if (errorPage) {
+        pages.show(errorPage.dataset.fbPage);
+        serverError.focus();
+      }
+    }
   });
 }
 
