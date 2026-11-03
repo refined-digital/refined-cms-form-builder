@@ -257,6 +257,18 @@ class FormBuilderController extends CoreController
 
 
     /**
+     * returns the session's current csrf token so a long-open form can post with a fresh one
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function token()
+    {
+        return response()
+            ->json(['token' => csrf_token()])
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+    }
+
+    /**
      * handles the form submits
      *
      * @param  Request

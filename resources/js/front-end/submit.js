@@ -1,6 +1,6 @@
 // AJAX submit for the public form. FormData -> fetch, with:
 //  - loading state on the submit button
-//  - 419 (expired CSRF) one-shot retry after refreshing the token
+//  - fresh CSRF token fetched right before posting, plus a one-shot retry on 419
 //  - 422 -> map server field errors onto the inputs
 //  - success -> outcome handling (message replace / redirect)
 //
@@ -91,6 +91,29 @@ function handleSuccess(form, data) {
   }
 }
 
+/**
+ * Fetch a fresh CSRF token and write it into the form's _token input and the csrf-token meta.
+ * Laravel reads the _token input before the X-CSRF-TOKEN header, so both must change.
+ * A failed fetch is ignored: the submit goes ahead with the current token.
+ *
+ * @param {HTMLFormElement} form
+ * @returns {Promise<void>}
+ */
+export async function refreshToken(form) {
+  try {
+    const res = await fetch('/forms/token', {
+      headers: { 'X-Requested-With': 'XMLHttpRequest', Accept: 'application/json' },
+      cache: 'no-store',
+      credentials: 'same-origin',
+    });
+    if (!res.ok) return;
+    const { token } = await res.json();
+    if (!token) return;
+    form.querySelectorAll('input[name="_token"]').forEach((input) => { input.value = token; });
+    document.querySelector('meta[name="csrf-token"]')?.setAttribute('content', token);
+  } catch (e) { /* keep the current token */ }
+}
+
 async function postForm(form) {
   const body = new FormData(form);
   return fetch(form.getAttribute('action'), {
@@ -115,18 +138,12 @@ export async function submitForm(form, { onSuccess } = {}) {
   setLoading(form, true);
   clearFormError(form);
   try {
+    await refreshToken(form);
     let res = await postForm(form);
 
-    // expired CSRF — refresh token once and retry
+    // expired CSRF despite the fresh token (session rotated meanwhile) — fetch another and retry once
     if (res.status === 419) {
-      try {
-        const ping = await fetch(window.location.href, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
-        const html = await ping.text();
-        const match = html.match(/name="csrf-token" content="([^"]+)"/);
-        if (match) {
-          document.querySelector('meta[name="csrf-token"]')?.setAttribute('content', match[1]);
-        }
-      } catch (e) { /* ignore */ }
+      await refreshToken(form);
       res = await postForm(form);
     }
 
