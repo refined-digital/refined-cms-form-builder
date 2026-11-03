@@ -17,7 +17,7 @@ class FormField extends CoreModel implements Sortable
         'include_in_email', 'visibility', 'visibility_rules',
         'data', 'custom_field_class', 'store_in',
         'note', 'label_position', 'autocomplete', 'custom_class',
-        'note_position', 'merge_field', 'hidden_field_value', 'settings',
+        'note_position', 'merge_field', 'hidden_field_value', 'settings', 'form_page_id',
     ];
 
     protected $casts = [
@@ -25,6 +25,7 @@ class FormField extends CoreModel implements Sortable
       'active' => 'integer',
       'position' => 'integer',
       'form_id' => 'integer',
+      'form_page_id' => 'integer',
       'form_field_type_id' => 'integer',
       'show_label' => 'integer',
       'required' => 'integer',
@@ -39,6 +40,11 @@ class FormField extends CoreModel implements Sortable
     protected $appends = [
         'view',
     ];
+
+    public function page()
+    {
+        return $this->belongsTo(FormPage::class, 'form_page_id');
+    }
 
     /**
      * The fields to be displayed for creating / editing

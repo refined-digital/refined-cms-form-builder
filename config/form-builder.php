@@ -279,8 +279,12 @@ return [
         21 => RefinedDigital\FormBuilder\Module\Fields\FormField_DOB::class,
         22 => RefinedDigital\FormBuilder\Module\Fields\FormField_GroupStart::class,
         23 => RefinedDigital\FormBuilder\Module\Fields\FormField_GroupEnd::class,
+        24 => RefinedDigital\FormBuilder\Module\Fields\FormField_Heading::class,
     ],
     'accepted_mime_types' => 'bmp,csv,doc,docx,gif,jpeg,jpg,pdf,png,ppt,pptx,tif,tiff,txt,xls,xlsx',
+    // days an autosaved draft survives after its last change
+    'autosave_days' => 30,
+
     'date_format' => 'd/m/Y',
     'datetime_format' => 'd/m/Y g:ia',
 

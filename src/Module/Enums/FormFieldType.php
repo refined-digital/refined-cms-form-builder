@@ -58,4 +58,6 @@ enum FormFieldType: int
     case GROUP_START = 22;
 
     case GROUP_END = 23;
+
+    case HEADING = 24;
 }

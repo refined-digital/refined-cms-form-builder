@@ -34,7 +34,8 @@ class Form extends CoreModel implements Sortable
         'receipt',
         'receipt_message',
         'receipt_subject',
-
+        'use_pages',
+        'autosave',
     ];
 
     protected $casts = [
@@ -44,11 +45,18 @@ class Form extends CoreModel implements Sortable
         'recaptcha' => 'integer',
         'send_as_plain_text' => 'integer',
         'receipt' => 'integer',
+        'use_pages' => 'integer',
+        'autosave' => 'integer',
     ];
 
     public function notifications()
     {
         return $this->hasMany(FormEmailNotification::class, 'form_id')->orderBy('position');
+    }
+
+    public function pages()
+    {
+        return $this->hasMany(FormPage::class, 'form_id')->orderBy('position');
     }
 
     public function integrations()
