@@ -326,7 +326,7 @@ export default {
     async onReorder(orderedFields) {
       this.fields = this.usesPages ? this.composeFields(orderedFields) : orderedFields;
       try {
-        await this.api.reorder(orderedFields.map((f) => f.id));
+        await this.api.reorder(this.fields.map((f) => f.id));
       } catch (e) {
         console.error('[form-builder] reorder failed', e);
       }
