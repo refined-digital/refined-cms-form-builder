@@ -4,6 +4,7 @@ namespace RefinedDigital\FormBuilder\Module\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use RefinedDigital\FormBuilder\Module\Http\Repositories\FormBuilderRepository;
 use RefinedDigital\FormBuilder\Module\Models\Form;
@@ -221,8 +222,10 @@ class FormBuilderApiController extends Controller
         $target = (clone $others)->where('position', '<', $page->position)->orderByDesc('position')->first()
             ?? (clone $others)->orderBy('position')->first();
 
-        FormField::where('form_page_id', $page->id)->update(['form_page_id' => $target->id]);
-        $page->delete();
+        DB::transaction(function () use ($page, $target) {
+            FormField::where('form_page_id', $page->id)->update(['form_page_id' => $target->id]);
+            $page->delete();
+        });
 
         return response()->json(['data' => ['id' => (int) $pageId]]);
     }
