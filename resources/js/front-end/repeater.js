@@ -84,7 +84,10 @@ function addRow(repeater) {
 
   const used = rowIndexes(repeater);
   const index = used.length ? Math.max(...used) + 1 : 0;
-  const number = rowsOf(repeater).length + 1;
+  // one past the highest number shown, so a remove then add never repeats one;
+  // server rendered rows carry no number and show their position
+  const shown = rowsOf(repeater).map((r, i) => Number(r.dataset.fbRepeaterNumber) || i + 1);
+  const number = shown.length ? Math.max(...shown) + 1 : 1;
 
   const holder = document.createElement('div');
   holder.innerHTML = template.innerHTML
@@ -94,6 +97,7 @@ function addRow(repeater) {
   if (!row) return null;
 
   row.dataset.fbRepeaterIndex = String(index);
+  row.dataset.fbRepeaterNumber = String(number);
   container.appendChild(row);
   return row;
 }
