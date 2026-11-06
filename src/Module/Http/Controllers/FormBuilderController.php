@@ -277,37 +277,40 @@ class FormBuilderController extends CoreController
      */
      public function submit(FormSubmitRequest $request, Form $form)
      {
-        // run enabled integrations first; a failure aborts the whole submission
-        // (no notifications, no redirect) — used by Payments for declined charges
-        $failure = $this->formBuilderRepository->runIntegrations($request, $form);
-        if ($failure) {
-            // record the attempt (with the reason) so a failed submission is still
-            // recoverable and debuggable from the admin
-            $this->formBuilderRepository->storeSubmissionRecord($request, $form, null, $failure);
+        // a monthly form test is validated above like any other submission, then goes no further
+        if (! \RefinedDigital\FormBuilder\Module\Support\CarePlanTestSubmission::matches($request->all())) {
+            // run enabled integrations first; a failure aborts the whole submission
+            // (no notifications, no redirect) — used by Payments for declined charges
+            $failure = $this->formBuilderRepository->runIntegrations($request, $form);
+            if ($failure) {
+                // record the attempt (with the reason) so a failed submission is still
+                // recoverable and debuggable from the admin
+                $this->formBuilderRepository->storeSubmissionRecord($request, $form, null, $failure);
 
-            $message = $failure->message ?? 'We could not process your submission.';
-            if ($request->expectsJson()) {
-                return response()->json(['message' => $message, 'errors' => $failure->errors ?? []], 422);
+                $message = $failure->message ?? 'We could not process your submission.';
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => $message, 'errors' => $failure->errors ?? []], 422);
+                }
+                return redirect()->back()->withInput()->withErrors(['form' => $message]);
             }
-            return redirect()->back()->withInput()->withErrors(['form' => $message]);
-        }
 
-        // send the active email notifications unless an enabled integration opted
-        // out via Send Email = No
-        $submissionGroup = (string) \Illuminate\Support\Str::uuid();
-        $sent = 0;
-        if ($this->formBuilderRepository->shouldSendNotifications($form)) {
-            $sent = $this->formBuilderRepository->compileAndSend($request, $form, $submissionGroup);
-        }
+            // send the active email notifications unless an enabled integration opted
+            // out via Send Email = No
+            $submissionGroup = (string) \Illuminate\Support\Str::uuid();
+            $sent = 0;
+            if ($this->formBuilderRepository->shouldSendNotifications($form)) {
+                $sent = $this->formBuilderRepository->compileAndSend($request, $form, $submissionGroup);
+            }
 
-        // every form-fill is recorded, even when no notification went out — the
-        // submission rows are written by the send, so with nothing sent we store
-        // the record ourselves
-        if (!$sent) {
-            $this->formBuilderRepository->storeSubmissionRecord($request, $form, $submissionGroup);
-        }
+            // every form-fill is recorded, even when no notification went out — the
+            // submission rows are written by the send, so with nothing sent we store
+            // the record ourselves
+            if (!$sent) {
+                $this->formBuilderRepository->storeSubmissionRecord($request, $form, $submissionGroup);
+            }
 
-        \RefinedDigital\FormBuilder\Module\Support\CarePlanEnquiryPing::dispatch($submissionGroup);
+            \RefinedDigital\FormBuilder\Module\Support\CarePlanEnquiryPing::dispatch($submissionGroup);
+        }
 
         if (session()->has('form_data')) {
             session()->forget('form_data');

@@ -301,6 +301,9 @@ return [
         'enabled' => env('CARE_PLAN_ENQUIRIES_ENABLED', false),
         'endpoint' => env('CARE_PLAN_ENQUIRIES_URL'),
         'token' => env('CARE_PLAN_ENQUIRIES_TOKEN'),
+        // a submission using this email in any field is a form test: it skips
+        // integrations, notifications and storage, and is not counted. Keep it private.
+        'test_email' => env('CARE_PLAN_TEST_EMAIL'),
     ],
 
     // queue email notification delivery (only effective when QUEUE_CONNECTION is
