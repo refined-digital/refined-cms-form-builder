@@ -17,6 +17,10 @@ class FormField_Hidden extends FormField {
 @php
   if ($value === '[page]') {
     $value = request()->url();
+  } elseif (is_string($value) && preg_match('/^\[query:([\w.-]+)\]$/', $value, $token)) {
+    // filled from the page url, e.g. [query:lot] picks up ?lot=12 from a lot's enquire link
+    $query = request()->query($token[1]);
+    $value = is_string($query) ? $query : null;
   }
 @endphp
 {!!

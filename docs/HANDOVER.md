@@ -143,6 +143,8 @@ Field types are identified by **hardcoded integer IDs** (1–23) seeded in `Fiel
 
 Special-cased IDs: `12` hidden (skips class/required), `11` renders twice (confirmation), `17`/`18` files (→ `enctype=multipart/form-data`), `22`/`23` wrap fields in a `<section>`, `20` custom (host-resolved), `19`/`12` skip required validation (`config('form-builder.skip_validation')`).
 
+Hidden field default value tokens: `[page]` fills the current page url, `[query:<name>]` fills that url query parameter (e.g. `[query:lot]` reads `?lot=12`), or blank when it's absent.
+
 ### Field class resolution
 Each field renders and validates through a `FormField_<Type>` class in `src/Module/Fields/`.
 
